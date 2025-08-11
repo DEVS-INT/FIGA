@@ -1,0 +1,76 @@
+/* Dashboard specific styles */
+.dashboard-container {
+  @apply min-h-screen;
+}
+
+.dashboard-container.jobseeker {
+  @apply bg-gradient-to-br from-green-50 via-white to-green-100/30;
+}
+
+.dashboard-container.employer {
+  @apply bg-gradient-to-br from-blue-50 via-white to-blue-100/30;
+}
+
+.dashboard-container.admin {
+  @apply bg-gradient-to-br from-purple-50 via-white to-purple-100/30;
+}
+
+.dashboard-header {
+  @apply bg-white/80 backdrop-blur-lg border-b sticky top-0 z-50;
+}
+
+.dashboard-header.jobseeker {
+  @apply border-green-200/50;
+}
+
+.dashboard-header.employer {
+  @apply border-blue-200/50;
+}
+
+.dashboard-header.admin {
+  @apply border-purple-200/50;
+}
+
+.dashboard-card {
+  @apply border-0 shadow-lg bg-white/80 backdrop-blur-sm;
+}
+
+.stat-card {
+  @apply border-0 shadow-lg bg-white/80 backdrop-blur-sm;
+}
+
+.stat-icon {
+  @apply w-12 h-12 rounded-xl flex items-center justify-center shadow-lg;
+}
+
+.nav-link {
+  @apply font-medium transition-colors duration-200;
+}
+
+.nav-link.active {
+  @apply font-medium;
+}
+
+.nav-link.jobseeker {
+  @apply text-slate-600 hover:text-green-600;
+}
+
+.nav-link.jobseeker.active {
+  @apply text-green-600;
+}
+
+.nav-link.employer {
+  @apply text-slate-600 hover:text-blue-600;
+}
+
+.nav-link.employer.active {
+  @apply text-blue-600;
+}
+
+.nav-link.admin {
+  @apply text-slate-600 hover:text-purple-600;
+}
+
+.nav-link.admin.active {
+  @apply text-purple-600;
+}

@@ -1,0 +1,40 @@
+/* Authentication specific styles */
+.auth-container {
+  @apply min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100/30;
+}
+
+.auth-card {
+  @apply border-0 shadow-2xl bg-white/80 backdrop-blur-lg;
+}
+
+.auth-input {
+  @apply h-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl;
+}
+
+.auth-button {
+  @apply h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
+}
+
+.role-card {
+  @apply cursor-pointer transition-all duration-300 flex-1 hover:shadow-md border-slate-200;
+}
+
+.role-card.selected {
+  @apply ring-2 ring-blue-500 bg-blue-50 border-blue-200;
+}
+
+.demo-credentials {
+  @apply bg-blue-50 border border-blue-200 rounded-2xl p-4;
+}
+
+.form-section {
+  @apply space-y-6 p-6 rounded-2xl border;
+}
+
+.form-section.jobseeker {
+  @apply bg-green-50 border-green-200;
+}
+
+.form-section.employer {
+  @apply bg-blue-50 border-blue-200;
+}
