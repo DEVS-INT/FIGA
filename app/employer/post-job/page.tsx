@@ -2,7 +2,19 @@
 
 import { AuthGuard } from '@/components/auth'
 import { Container, Section } from '@/components/common'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Input, Textarea, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Checkbox, RadioGroup, RadioGroupItem, Switch, Separator, Badge, Progress } from '@/components/ui'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { Save, Send, MapPin, Clock, User, CheckCircle, MessageSquare, Calendar } from 'lucide-react'
 import { useState } from 'react'
 

@@ -1,7 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Input, Textarea, Label, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { Send, User, Mail, MessageSquare } from 'lucide-react'
 
 export function ContactForm() {
