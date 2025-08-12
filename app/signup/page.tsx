@@ -12,6 +12,7 @@ import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { FigaLogo } from "@/components/figa-logo"
 import { Eye, EyeOff, User, Mail, Lock, ArrowRight } from 'lucide-react'
+import { signIn } from "next-auth/react"
 
 type UserRole = 'professional' | 'employer'
 
@@ -83,17 +84,43 @@ export default function SignUpPage() {
 
     setIsLoading(true)
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullname: formData.fullname,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role === 'professional' ? 'EMPLOYEE' : 'EMPLOYER',
+        }),
+      })
 
-    // Redirect based on role
-    if (formData.role === 'professional') {
-      router.push('/dashboard/professional')
-    } else {
-      router.push('/dashboard/employer')
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create account')
+      }
+
+      await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
+
+      if (formData.role === 'professional') {
+        router.push('/caregiver/dashboard')
+      } else {
+        router.push('/employer/dashboard')
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrors({ general: error.message })
+      } else {
+        setErrors({ general: 'Something went wrong' })
+      }
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   return (
@@ -122,6 +149,12 @@ export default function SignUpPage() {
 
           <CardContent className="px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {errors.general && (
+                <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {errors.general}
+                </div>
+              )}
               {/* Role Selection */}
               <div className="space-y-4">
                 <Label className="text-lg font-semibold text-slate-900">
