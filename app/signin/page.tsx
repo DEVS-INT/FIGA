@@ -5,6 +5,7 @@ import { useState } from "react"
 import { FigaLogo } from "@/components/figa-logo"
 import { Container, Section } from "@/components/common"
 import { useRouter } from "next/navigation"
+import { signIn, getSession } from "next-auth/react"
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -22,29 +23,24 @@ export default function SignInPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const demoCredentials = [
-    { email: "jobseeker@demo.com", password: "demo123", role: "jobseeker" },
-    { email: "employer@demo.com", password: "demo123", role: "employer" },
-    { email: "admin@figacare.com", password: "admin123", role: "admin" },
-    { email: "staff@figacare.com", password: "staff123", role: "staff" },
-  ]
-
-  const handleLoginSuccess = (role: string) => {
+  const handleLoginSuccess = async () => {
+    const session = await getSession()
+    const role = session?.user?.role
     switch (role) {
-      case "jobseeker":
+      case "EMPLOYEE":
         router.push("/caregiver/dashboard")
         break
-      case "employer":
+      case "EMPLOYER":
         router.push("/employer/dashboard")
         break
-      case "admin":
+      case "ADMIN":
         router.push("/admin")
         break
-      case "staff":
+      case "STAFF":
         router.push("/staff/dashboard")
         break
       default:
-        router.push("/dashboard")
+        router.push("/")
     }
   }
 
@@ -63,17 +59,17 @@ export default function SignInPage() {
         throw new Error("Password must be at least 6 characters")
       }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
 
-      const user = demoCredentials.find((cred) => cred.email === formData.email && cred.password === formData.password)
-
-      if (!user) {
+      if (result?.error) {
         throw new Error("Invalid email or password")
       }
 
-      // Call success handler with role
-      handleLoginSuccess(user.role)
+      await handleLoginSuccess()
     } catch (err) {
       setError(
         typeof err === "object" && err !== null && "message" in err
@@ -178,23 +174,6 @@ export default function SignInPage() {
               </Link>
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-md">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">Demo Credentials:</h3>
-              <div className="text-xs text-blue-700 space-y-1">
-                <div>
-                  <strong>Job Seeker:</strong> jobseeker@demo.com / demo123
-                </div>
-                <div>
-                  <strong>Employer:</strong> employer@demo.com / demo123
-                </div>
-                <div>
-                  <strong>Admin:</strong> admin@figacare.com / admin123
-                </div>
-                <div>
-                  <strong>Staff:</strong> staff@figacare.com / staff123
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </Container>

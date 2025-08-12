@@ -1,8 +1,9 @@
 // components/auth/auth-guard.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { LoadingSpinner } from "@/components/common";
 
 interface AuthGuardProps {
@@ -18,71 +19,30 @@ export function AuthGuard({
   redirectTo = "/signin",
   allowedRoles = [],
 }: AuthGuardProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [authState, setAuthState] = useState<{
-    isAuthenticated: boolean;
-    userRole: string | null;
-  }>({ isAuthenticated: false, userRole: null });
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (typeof window !== "undefined") {
-          const userData = localStorage.getItem("userData");
-          
-          if (userData) {
-            const { email, role } = JSON.parse(userData);
-            
-            const demoCredentials = [
-              { email: "jobseeker@demo.com", password: "demo123", role: "jobseeker" },
-              { email: "employer@demo.com", password: "demo123", role: "employer" },
-              { email: "admin@figacare.com", password: "admin123", role: "admin" },
-              { email: "staff@figacare.com", password: "staff123", role: "staff" },
-            ];
-
-            const isValidUser = demoCredentials.some(
-              (cred) => cred.email === email && cred.role === role
-            );
-
-            setAuthState({
-              isAuthenticated: isValidUser,
-              userRole: isValidUser ? role : null,
-            });
-          } else {
-            setAuthState({ isAuthenticated: false, userRole: null });
-          }
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        setAuthState({ isAuthenticated: false, userRole: null });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+  const isAuthenticated = status === "authenticated";
+  const userRole = session?.user?.role as string | undefined;
 
   useEffect(() => {
-    if (!isLoading) {
-      if (requireAuth && !authState.isAuthenticated) {
-        router.push(redirectTo);
-      } else if (!requireAuth && authState.isAuthenticated) {
-        router.push("/dashboard");
-      } else if (
-        requireAuth &&
-        authState.isAuthenticated &&
-        allowedRoles.length > 0
-      ) {
-        if (!authState.userRole || !allowedRoles.includes(authState.userRole)) {
-          router.push("/unauthorized");
-        }
-      }
+    if (status === "loading") return;
+
+    if (requireAuth && !isAuthenticated) {
+      router.push(redirectTo);
+    } else if (!requireAuth && isAuthenticated) {
+      router.push("/dashboard");
+    } else if (
+      requireAuth &&
+      isAuthenticated &&
+      allowedRoles.length > 0 &&
+      (!userRole || !allowedRoles.includes(userRole))
+    ) {
+      router.push("/unauthorized");
     }
-  }, [isLoading, authState, requireAuth, redirectTo, router, allowedRoles]);
+  }, [status, requireAuth, isAuthenticated, redirectTo, router, allowedRoles, userRole]);
 
-  if (isLoading) {
+  if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner size="lg" />
@@ -91,10 +51,9 @@ export function AuthGuard({
   }
 
   if (
-    (requireAuth && !authState.isAuthenticated) ||
-    (!requireAuth && authState.isAuthenticated) ||
-    (allowedRoles.length > 0 &&
-      (!authState.userRole || !allowedRoles.includes(authState.userRole)))
+    (requireAuth && !isAuthenticated) ||
+    (!requireAuth && isAuthenticated) ||
+    (allowedRoles.length > 0 && (!userRole || !allowedRoles.includes(userRole)))
   ) {
     return null;
   }
