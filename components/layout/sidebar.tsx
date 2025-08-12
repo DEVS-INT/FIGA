@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { FigaLogo } from '@/components/common'
+import { FigaLogo } from '@/components/figa-logo'
 import { Home, Users, Calendar, Settings, FileText, BarChart3, User, Briefcase } from 'lucide-react'
 
 interface SidebarItem {
