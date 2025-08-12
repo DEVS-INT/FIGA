@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { signIn } from "next-auth/react"
 
 export default function SignInPage() {
   const router = useRouter()
@@ -22,58 +23,23 @@ export default function SignInPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const demoCredentials = [
-    { email: "jobseeker@demo.com", password: "demo123", role: "jobseeker" },
-    { email: "employer@demo.com", password: "demo123", role: "employer" },
-    { email: "admin@figacare.com", password: "admin123", role: "admin" },
-    { email: "staff@figacare.com", password: "staff123", role: "staff" },
-  ]
-
-  const handleLoginSuccess = (role: string) => {
-    switch (role) {
-      case "jobseeker":
-        router.push("/caregiver/dashboard")
-        break
-      case "employer":
-        router.push("/employer/dashboard")
-        break
-      case "admin":
-        router.push("/admin")
-        break
-      case "staff":
-        router.push("/staff/dashboard")
-        break
-      default:
-        router.push("/dashboard")
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
     try {
-      // Basic validation
-      if (!formData.email.includes("@")) {
-        throw new Error("Please enter a valid email address")
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (res?.error) {
+        throw new Error(res.error)
       }
 
-      if (formData.password.length < 6) {
-        throw new Error("Password must be at least 6 characters")
-      }
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const user = demoCredentials.find((cred) => cred.email === formData.email && cred.password === formData.password)
-
-      if (!user) {
-        throw new Error("Invalid email or password")
-      }
-
-      // Call success handler with role
-      handleLoginSuccess(user.role)
+      router.push("/")
     } catch (err) {
       setError(
         typeof err === "object" && err !== null && "message" in err
@@ -178,23 +144,6 @@ export default function SignInPage() {
               </Link>
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-md">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">Demo Credentials:</h3>
-              <div className="text-xs text-blue-700 space-y-1">
-                <div>
-                  <strong>Job Seeker:</strong> jobseeker@demo.com / demo123
-                </div>
-                <div>
-                  <strong>Employer:</strong> employer@demo.com / demo123
-                </div>
-                <div>
-                  <strong>Admin:</strong> admin@figacare.com / admin123
-                </div>
-                <div>
-                  <strong>Staff:</strong> staff@figacare.com / staff123
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </Container>
