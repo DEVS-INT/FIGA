@@ -76,24 +76,36 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
 
     setIsLoading(true)
+    try {
+      const role = formData.role === 'professional' ? 'EMPLOYEE' : 'EMPLOYER'
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullname: formData.fullname,
+          email: formData.email,
+          password: formData.password,
+          role,
+        }),
+      })
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Registration failed')
+      }
 
-    // Redirect based on role
-    if (formData.role === 'professional') {
-      router.push('/dashboard/professional')
-    } else {
-      router.push('/dashboard/employer')
+      router.push('/signin')
+    } catch (err) {
+      setErrors(prev => ({ ...prev, api: err instanceof Error ? err.message : 'Registration failed' }))
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   return (
@@ -121,6 +133,9 @@ export default function SignUpPage() {
           </CardHeader>
 
           <CardContent className="px-8 pb-8">
+            {errors.api && (
+              <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 rounded-md">{errors.api}</div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Role Selection */}
               <div className="space-y-4">
