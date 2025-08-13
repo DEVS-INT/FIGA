@@ -30,43 +30,43 @@ model User {
   role       Role
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  // Job        Job[]
+  Job        Job[]
 }
 
-// model Job {
-//   id                         Int         @id @default(autoincrement())
-//   employer_id                String
-//   title                      String
-//   location                   String
-//   schedule_start             DateTime
-//   schedule_end               DateTime
-//   shift_type                 String
-//   gender_preference          String?
-//   driving_license_required   Boolean     @default(false)
-//   language_level_requirement String?
-//   job_requirements           String?
-//   description                String
-//   status                     JobStatus   @default(PENDING)
-//   posted_at                  DateTime    @default(now())
-//   updated_at                 DateTime    @updatedAt
-//   deadline                   DateTime?
-//   reviewed_by                String?
-//   reviewed_at                DateTime?
-//   is_reviewed                Boolean     @default(false)
-//   job_urgency                JobUrgency?
+model Job {
+  id                         Int         @id @default(autoincrement())
+  employer_id                String
+  title                      String
+  location                   String
+  schedule_start             DateTime
+  schedule_end               DateTime
+  shift_type                 String
+  gender_preference          String?
+  driving_license_required   Boolean     @default(false)
+  language_level_requirement String?
+  job_requirements           String?
+  description                String
+  status                     JobStatus   @default(PENDING)
+  posted_at                  DateTime    @default(now())
+  updated_at                 DateTime    @updatedAt
+  deadline                   DateTime?
+  reviewed_by                String?
+  reviewed_at                DateTime?
+  is_reviewed                Boolean     @default(false)
+  job_urgency                JobUrgency?
 
-//   // Relations
-//   employer User @relation(fields: [employer_id], references: [id])
-// }
+  // Relations
+  employer User @relation(fields: [employer_id], references: [id])
+}
 
-// enum JobStatus {
-//   PENDING
-//   APPROVED
-//   REJECTED
-// }
+enum JobStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
 
-// enum JobUrgency {
-//   LOW
-//   MEDIUM
-//   HIGH
-// }
+enum JobUrgency {
+  LOW
+  MEDIUM
+  HIGH
+}
