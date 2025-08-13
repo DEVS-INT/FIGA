@@ -259,7 +259,7 @@ export default function SignInPage() {
       }
 
       toast.success("Signed in successfully!", { position: "top-center" });
-      router.push("/caregiver/dashboard"); 
+      router.push("/employer/dashboard"); 
     } catch (error) {
       toast.error(
         typeof error === "object" && error !== null && "message" in error
