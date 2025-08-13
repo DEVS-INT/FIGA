@@ -63,6 +63,8 @@ enum JobStatus {
   PENDING
   APPROVED
   REJECTED
+  COMPLETED
+  CANCELLED
 }
 
 enum JobUrgency {
