@@ -5,6 +5,10 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { Toaster } from "react-hot-toast"
 import AuthProvider from './providers/provider'
+import { authOptions } from '@/app/api/auth/authOptions'
+import { getServerSession } from 'next-auth'
+
+
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -15,15 +19,16 @@ export const metadata: Metadata = {
     generator: 'v0.dev'
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+   const session = await getServerSession(authOptions)
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
+        <AuthProvider session={session}>
           <div className="flex flex-col min-h-screen">
             <Header />
             <Toaster />
