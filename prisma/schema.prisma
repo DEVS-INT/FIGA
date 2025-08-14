@@ -10,8 +10,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL") 
+
 }
 
 enum Role {
@@ -62,6 +65,8 @@ enum JobStatus {
   PENDING
   APPROVED
   REJECTED
+  COMPLETED
+  CANCELLED
 }
 
 enum JobUrgency {

@@ -43,14 +43,20 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async jwt({ token, user }) {
+            // Persist custom props on first sign in
             if (user) {
-                token.role = user.role;
+                token.role = (user as any).role;
+                // NextAuth sets token.sub = user.id; keep an explicit id too for convenience
+                (token as any).id = (user as any).id;
             }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
-                session.user.role = token.role; 
+                // Ensure id and role are available on the client/session
+                // Prefer token.sub (standard) and fall back to token.id
+                (session.user as any).id = (token.sub as string) || ((token as any).id as string);
+                (session.user as any).role = (token as any).role as string | undefined; 
             }
             return session;
         }

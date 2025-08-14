@@ -1,55 +1,33 @@
-export interface User {
-  id: string
-  email: string
-  name: string
-  role: 'jobseeker' | 'employer' | 'admin'
-  avatar?: string
-}
+import { NextAuthOptions } from 'next-auth'
+import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import { prisma } from '../prisma/client' // Adjust the import path as necessary
+import { Adapter } from 'next-auth/adapters'
 
-export interface AuthState {
-  user: User | null
-  isLoading: boolean
-  error: string | null
-}
-
-export const demoCredentials = [
-  { 
-    email: 'jobseeker@demo.com', 
-    password: 'demo123', 
-    role: 'jobseeker' as const,
-    name: 'Maria Rodriguez',
-    id: '1'
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma) as Adapter,
+  providers: [
+    // Add your providers here
+  ],
+  session: {
+    strategy: 'jwt',
   },
-  { 
-    email: 'employer@demo.com', 
-    password: 'demo123', 
-    role: 'employer' as const,
-    name: 'Golden Years Care',
-    id: '2'
-  },
-  { 
-    email: 'admin@demo.com', 
-    password: 'admin123', 
-    role: 'admin' as const,
-    name: 'System Administrator',
-    id: '3'
-  }
-]
-
-export function validateCredentials(email: string, password: string): User | null {
-  const user = demoCredentials.find(cred => cred.email === email && cred.password === password)
-  if (user) {
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role
+  callbacks: {
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub || ''
+      }
+      return session
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id
+      }
+      return token
     }
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: '/signin',
+    error: '/auth/error',
   }
-  return null
-}
-
-export function getDashboardRoute(role: string): string {
-  // Since dashboards are removed, redirect all users to home page
-  return '/'
 }
