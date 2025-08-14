@@ -7,6 +7,15 @@ import { Button } from "@/components/ui/button"
 import { FigaLogo } from "@/components/figa-logo"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface HeaderProps {
   variant?: "default" | "employer" | "caregiver"
@@ -15,6 +24,14 @@ interface HeaderProps {
 export function Header({ variant = "default" }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  
+  // Temporary authentication state - replace with your actual auth context
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState({
+    name: "John Doe",
+    email: "john@example.com",
+    imageUrl: "https://github.com/shadcn.png"
+  })
 
   const getNavLinks = () => {
     switch (variant) {
@@ -36,7 +53,6 @@ export function Header({ variant = "default" }: HeaderProps) {
         return [
           { href: "/jobs", label: "Find Jobs" },
           { href: "/about", label: "About Us" },
-         
           { href: "/faq", label: "FAQ" },
         ]
     }
@@ -48,6 +64,21 @@ export function Header({ variant = "default" }: HeaderProps) {
     if (href === "/" && pathname === "/") return true
     if (href !== "/" && pathname.startsWith(href)) return true
     return false
+  }
+
+  // Temporary authentication handlers
+  const handleLogin = () => {
+    setIsAuthenticated(true)
+    setUser({
+      name: "Jane Smith",
+      email: "jane@example.com",
+      imageUrl: "https://github.com/shadcn.png"
+    })
+  }
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    setMobileMenuOpen(false)
   }
 
   return (
@@ -88,27 +119,67 @@ export function Header({ variant = "default" }: HeaderProps) {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/signin">
-              <Button
-                variant="ghost"
-                className={cn(
-                  "hover:bg-blue-50 hover:text-blue-600 transition-all duration-300",
-                  pathname === "/signin" && "bg-blue-50 text-blue-600",
-                )}
-              >
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button
-                className={cn(
-                  "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105",
-                  pathname === "/signup" && "from-blue-700 to-blue-800 shadow-xl scale-105",
-                )}
-              >
-                Get Started
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="cursor-pointer border-2 border-blue-500 hover:scale-105 transition-transform">
+                    <AvatarImage 
+                      src={user.imageUrl} 
+                      alt={user.name} 
+                    />
+                    <AvatarFallback className="bg-blue-100 text-blue-800 font-medium">
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings">Settings</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/employer/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                   
+                  >
+                    <Link href="/api/auth/signout">Logout</Link>
+                    
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link href="/signin">
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "hover:bg-blue-50 hover:text-blue-600 transition-all duration-300",
+                      pathname === "/signin" && "bg-blue-50 text-blue-600"
+                    )}
+                    onClick={handleLogin}
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button
+                    className={cn(
+                      "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105",
+                      pathname === "/signup" && "from-blue-700 to-blue-800 shadow-xl scale-105"
+                    )}
+                    onClick={handleLogin}
+                  >
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -138,29 +209,76 @@ export function Header({ variant = "default" }: HeaderProps) {
                 </Link>
               ))}
               <div className="flex flex-col space-y-2 pt-4 border-t border-slate-200">
-                <Link href="/signin">
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start text-slate-700 hover:text-blue-600 hover:bg-blue-50",
-                      pathname === "/signin" && "text-blue-600 bg-blue-50",
-                    )}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button
-                    className={cn(
-                      "w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white",
-                      pathname === "/signup" && "from-blue-700 to-blue-800",
-                    )}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Get Started
-                  </Button>
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link href="/profile">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Profile
+                      </Button>
+                    </Link>
+                    <Link href="/settings">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Settings
+                      </Button>
+                    </Link>
+                    <Link href="employer/dashboard">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/signin">
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start text-slate-700 hover:text-blue-600 hover:bg-blue-50",
+                          pathname === "/signin" && "text-blue-600 bg-blue-50"
+                        )}
+                        onClick={() => {
+                          setMobileMenuOpen(false)
+                          handleLogin()
+                        }}
+                      >
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link href="/signup">
+                      <Button
+                        className={cn(
+                          "w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white",
+                          pathname === "/signup" && "from-blue-700 to-blue-800"
+                        )}
+                        onClick={() => {
+                          setMobileMenuOpen(false)
+                          handleLogin()
+                        }}
+                      >
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
