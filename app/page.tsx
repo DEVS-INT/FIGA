@@ -1,13 +1,59 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Star, ArrowRight, Heart, ChevronDown } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Star, ArrowRight, Heart, ChevronDown } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function HomePage() {
+  // Typing animation for hero title
+  // Render first word immediately; animate the rest with correct spacing
+  const headWord = "Compassionate";
+  const line1Rest = "care"; // type only the word; we render a fixed space in JSX
+  const line2 = " matched to your needs"; // leading space ensures correct sentence spacing
+  const [typed1, setTyped1] = React.useState<string>(""); // types out line1Rest
+  const [typed2, setTyped2] = React.useState<string>(""); // types out line2
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const speed = 40; // ms per character
+
+    let i = 0;
+    let j = 0;
+
+    const typeSecond = () => {
+      if (cancelled) return;
+      if (j <= line2.length) {
+        setTyped2(line2.slice(0, j));
+        j += 1;
+        if (j <= line2.length) setTimeout(typeSecond, speed);
+      }
+    };
+
+    const typeFirst = () => {
+      if (cancelled) return;
+      if (i <= line1Rest.length) {
+        setTyped1(line1Rest.slice(0, i));
+        i += 1;
+        if (i <= line1Rest.length) {
+          setTimeout(typeFirst, speed);
+        } else {
+          // small pause before typing the second line
+          setTimeout(typeSecond, 300);
+        }
+      }
+    };
+
+    // start typing on mount
+    typeFirst();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100/30">
       <main className="flex-1">
@@ -31,15 +77,34 @@ export default function HomePage() {
 
                 <div className="space-y-6">
                   <h1 className="text-5xl lg:text-7xl font-bold text-slate-900 leading-tight">
-                    Compassionate care
+                    <span>
+                      {headWord}{" "}
+                      <span>
+                        {typed1}
+                        {typed1.length < line1Rest.length ? (
+                          <span
+                            aria-hidden
+                            className="ml-1 inline-block w-0.5 h-8 bg-slate-900 align-middle animate-pulse"
+                          />
+                        ) : null}
+                      </span>
+                    </span>
                     <span className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent block animate-gradient">
-                      matched to your needs
+                      {typed2}
+                      {typed1.length === line1Rest.length &&
+                      typed2.length < line2.length ? (
+                        <span
+                          aria-hidden
+                          className="ml-1 inline-block w-0.5 h-8 bg-blue-700 align-middle animate-pulse"
+                        />
+                      ) : null}
                     </span>
                   </h1>
 
                   <p className="text-xl lg:text-2xl text-slate-600 leading-relaxed animate-fade-in-delay font-light">
-                    We provide skilled, compassionate caregivers matched to your unique needs. Quality care you can
-                    trust, when you need it most.
+                    We provide skilled, compassionate caregivers matched to your
+                    unique needs. Quality care you can trust, when you need it
+                    most.
                   </p>
                 </div>
 
@@ -66,11 +131,7 @@ export default function HomePage() {
                       </Button>
                     </Link>
                   </div>
-
-
                 </div>
-
-
               </div>
 
               {/* Right Side - Caring Image Only */}
@@ -86,7 +147,6 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
 
                   {/* Optional overlay text */}
-                 
                 </div>
               </div>
             </div>
@@ -106,9 +166,12 @@ export default function HomePage() {
         <section className="py-20 bg-gradient-to-br from-white via-blue-50/30 to-blue-100/20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-slate-900 mb-6">How It Works</h2>
+              <h2 className="text-4xl font-bold text-slate-900 mb-6">
+                How It Works
+              </h2>
               <p className="text-xl text-slate-600">
-                Simple steps to get started, whether you're seeking care or providing it
+                Simple steps to get started, whether you're seeking care or
+                providing it
               </p>
             </div>
 
@@ -119,7 +182,9 @@ export default function HomePage() {
                   <Badge className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200 px-4 py-2 text-lg font-semibold mb-4">
                     For Families
                   </Badge>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-8">Finding Your Perfect Caregiver</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-8">
+                    Finding Your Perfect Caregiver
+                  </h3>
                 </div>
 
                 <div className="space-y-6">
@@ -127,7 +192,8 @@ export default function HomePage() {
                     {
                       step: "1",
                       title: "Submit Request",
-                      description: "Fill out our detailed care needs assessment form with your specific requirements.",
+                      description:
+                        "Fill out our detailed care needs assessment form with your specific requirements.",
                       icon: "📝",
                     },
                     {
@@ -158,9 +224,13 @@ export default function HomePage() {
                           <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-3">
                             {step.step}
                           </span>
-                          <h4 className="font-bold text-slate-900 text-lg">{step.title}</h4>
+                          <h4 className="font-bold text-slate-900 text-lg">
+                            {step.title}
+                          </h4>
                         </div>
-                        <p className="text-slate-600 leading-relaxed">{step.description}</p>
+                        <p className="text-slate-600 leading-relaxed">
+                          {step.description}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -173,7 +243,9 @@ export default function HomePage() {
                   <Badge className="bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200 px-4 py-2 text-lg font-semibold mb-4">
                     For Caregivers
                   </Badge>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-8">Start Your Caregiving Career</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-8">
+                    Start Your Caregiving Career
+                  </h3>
                 </div>
 
                 <div className="space-y-6">
@@ -213,9 +285,13 @@ export default function HomePage() {
                           <span className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-bold mr-3">
                             {step.step}
                           </span>
-                          <h4 className="font-bold text-slate-900 text-lg">{step.title}</h4>
+                          <h4 className="font-bold text-slate-900 text-lg">
+                            {step.title}
+                          </h4>
                         </div>
-                        <p className="text-slate-600 leading-relaxed">{step.description}</p>
+                        <p className="text-slate-600 leading-relaxed">
+                          {step.description}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -253,8 +329,12 @@ export default function HomePage() {
         <section className="py-20 bg-gradient-to-br from-blue-50 via-white to-blue-100/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-slate-900 mb-6">What Our Families Say</h2>
-              <p className="text-xl text-slate-600">Real feedback from families and caregivers in our community</p>
+              <h2 className="text-4xl font-bold text-slate-900 mb-6">
+                What Our Families Say
+              </h2>
+              <p className="text-xl text-slate-600">
+                Real feedback from families and caregivers in our community
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -295,16 +375,23 @@ export default function HomePage() {
                   <CardContent className="p-8">
                     <div className="flex items-center mb-6">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400 animate-pulse-slow" />
+                        <Star
+                          key={i}
+                          className="w-5 h-5 fill-yellow-400 text-yellow-400 animate-pulse-slow"
+                        />
                       ))}
                     </div>
-                    <p className="text-slate-700 mb-6 text-lg leading-relaxed italic">"{testimonial.content}"</p>
+                    <p className="text-slate-700 mb-6 text-lg leading-relaxed italic">
+                      "{testimonial.content}"
+                    </p>
                     <div className="flex items-center">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-xl mr-4 animate-bounce-slow">
                         {testimonial.avatar}
                       </div>
                       <div>
-                        <div className="font-bold text-slate-900 text-lg">{testimonial.name}</div>
+                        <div className="font-bold text-slate-900 text-lg">
+                          {testimonial.name}
+                        </div>
                         <div className="text-slate-600">
                           {testimonial.type} • {testimonial.location}
                         </div>
@@ -318,5 +405,5 @@ export default function HomePage() {
         </section>
       </main>
     </div>
-  )
+  );
 }
