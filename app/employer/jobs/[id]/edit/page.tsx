@@ -120,7 +120,7 @@ export default function EditJobPage() {
       };
 
       const response = await fetch(`/api/job/${jobId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -128,8 +128,18 @@ export default function EditJobPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update job');
+        // Try to parse JSON error, fallback to text to avoid JSON parse errors
+        let message = 'Failed to update job';
+        try {
+          const errorData = await response.json();
+          message = errorData?.error || message;
+        } catch {
+          try {
+            const text = await response.text();
+            if (text) message = text;
+          } catch {}
+        }
+        throw new Error(message);
       }
 
       toast.success("Job updated successfully!");
