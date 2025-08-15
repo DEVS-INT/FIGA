@@ -5,20 +5,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, MapPin, Clock, User, CheckCircle, AlertTriangle, Loader2, ArrowLeft } from 'lucide-react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useRouter, useParams } from 'next/navigation';
-import toast from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import {
+  Save,
+  MapPin,
+  Clock,
+  User,
+  CheckCircle,
+  AlertTriangle,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useRouter, useParams } from "next/navigation";
+import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
 
 // Reuse the same schema from the post job form
 const jobFormSchema = z.object({
@@ -55,7 +83,7 @@ export default function EditJobPage() {
   const params = useParams();
   const jobId = params?.id as string;
   const [loading, setLoading] = useState(true);
-  
+
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
     defaultValues: {
@@ -80,25 +108,33 @@ export default function EditJobPage() {
       try {
         setLoading(true);
         const response = await fetch(`/api/job/${jobId}`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch job');
+          throw new Error("Failed to fetch job");
         }
 
         const data = await response.json();
-        
+
         // Convert ISO dates to datetime-local format
         const jobData = {
           ...data,
-          schedule_start: data.schedule_start ? new Date(data.schedule_start).toISOString().slice(0, 16) : "",
-          schedule_end: data.schedule_end ? new Date(data.schedule_end).toISOString().slice(0, 16) : "",
-          deadline: data.deadline ? new Date(data.deadline).toISOString().slice(0, 16) : "",
+          schedule_start: data.schedule_start
+            ? new Date(data.schedule_start).toISOString().slice(0, 16)
+            : "",
+          schedule_end: data.schedule_end
+            ? new Date(data.schedule_end).toISOString().slice(0, 16)
+            : "",
+          deadline: data.deadline
+            ? new Date(data.deadline).toISOString().slice(0, 16)
+            : "",
         };
 
         form.reset(jobData);
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Error loading job");
-        router.push('/employer/dashboard');
+        toast.error(
+          error instanceof Error ? error.message : "Error loading job"
+        );
+        router.push("/employer/dashboard");
       } finally {
         setLoading(false);
       }
@@ -120,16 +156,16 @@ export default function EditJobPage() {
       };
 
       const response = await fetch(`/api/job/${jobId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         // Try to parse JSON error, fallback to text to avoid JSON parse errors
-        let message = 'Failed to update job';
+        let message = "Failed to update job";
         try {
           const errorData = await response.json();
           message = errorData?.error || message;
@@ -143,10 +179,13 @@ export default function EditJobPage() {
       }
 
       toast.success("Job updated successfully!");
-      router.push('/employer/dashboard');
-      
+      router.push("/employer/dashboard");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error updating job. Please try again.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error updating job. Please try again."
+      );
     }
   };
 
@@ -166,27 +205,32 @@ export default function EditJobPage() {
         <div className="space-y-8">
           {/* Header with back button */}
           <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={() => router.back()}
-            >
+            <Button variant="outline" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Edit Job Posting</h1>
-              <p className="text-slate-600">Update your caregiver job details</p>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                Edit Job Posting
+              </h1>
+              <p className="text-slate-600">
+                Update your caregiver job details
+              </p>
             </div>
           </div>
 
           <Card>
             <CardHeader>
               <CardTitle>Job Details</CardTitle>
-              <CardDescription>Update the fields you want to change</CardDescription>
+              <CardDescription>
+                Update the fields you want to change
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-8"
+                >
                   {/* Basic Information */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -199,7 +243,13 @@ export default function EditJobPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Job Title <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+                            Job Title{" "}
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 text-xs"
+                            >
+                              Required
+                            </Badge>
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -211,14 +261,20 @@ export default function EditJobPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="location"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Location (City, State) <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+                            Location (City, State){" "}
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 text-xs"
+                            >
+                              Required
+                            </Badge>
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -237,7 +293,13 @@ export default function EditJobPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Job Description <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+                            Job Description{" "}
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 text-xs"
+                            >
+                              Required
+                            </Badge>
                           </FormLabel>
                           <FormControl>
                             <Textarea
@@ -265,13 +327,16 @@ export default function EditJobPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Start Date & Time <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+                              Start Date & Time{" "}
+                              <Badge
+                                variant="destructive"
+                                className="ml-1 text-xs"
+                              >
+                                Required
+                              </Badge>
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="datetime-local"
-                                {...field}
-                              />
+                              <Input type="datetime-local" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -283,13 +348,16 @@ export default function EditJobPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              End Date & Time <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+                              End Date & Time{" "}
+                              <Badge
+                                variant="destructive"
+                                className="ml-1 text-xs"
+                              >
+                                Required
+                              </Badge>
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="datetime-local"
-                                {...field}
-                              />
+                              <Input type="datetime-local" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -321,9 +389,18 @@ export default function EditJobPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Shift Type <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+                            Shift Type{" "}
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 text-xs"
+                            >
+                              Required
+                            </Badge>
                           </FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select shift type" />
@@ -332,7 +409,9 @@ export default function EditJobPage() {
                             <SelectContent>
                               <SelectItem value="Weekday">Weekday</SelectItem>
                               <SelectItem value="Weekend">Weekend</SelectItem>
-                              <SelectItem value="Overnight">Overnight</SelectItem>
+                              <SelectItem value="Overnight">
+                                Overnight
+                              </SelectItem>
                               <SelectItem value="Live-in">Live-in</SelectItem>
                               <SelectItem value="One-time">One-time</SelectItem>
                             </SelectContent>
@@ -348,8 +427,8 @@ export default function EditJobPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Job Urgency</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             value={field.value || ""}
                           >
                             <FormControl>
@@ -391,19 +470,25 @@ export default function EditJobPage() {
                                 <FormControl>
                                   <RadioGroupItem value="Male" />
                                 </FormControl>
-                                <FormLabel className="font-normal">Male</FormLabel>
+                                <FormLabel className="font-normal">
+                                  Male
+                                </FormLabel>
                               </FormItem>
                               <FormItem className="flex items-center space-x-2">
                                 <FormControl>
                                   <RadioGroupItem value="Female" />
                                 </FormControl>
-                                <FormLabel className="font-normal">Female</FormLabel>
+                                <FormLabel className="font-normal">
+                                  Female
+                                </FormLabel>
                               </FormItem>
                               <FormItem className="flex items-center space-x-2">
                                 <FormControl>
                                   <RadioGroupItem value="No preference" />
                                 </FormControl>
-                                <FormLabel className="font-normal">No preference</FormLabel>
+                                <FormLabel className="font-normal">
+                                  No preference
+                                </FormLabel>
                               </FormItem>
                             </RadioGroup>
                           </FormControl>
@@ -422,7 +507,9 @@ export default function EditJobPage() {
                           <FormItem className="flex items-center justify-between rounded-lg border p-4">
                             <div className="space-y-0.5">
                               <FormLabel>Driving License Required?</FormLabel>
-                              <p className="text-sm text-gray-500">Must have valid driver's license</p>
+                              <p className="text-sm text-gray-500">
+                                Must have valid driver's license
+                              </p>
                             </div>
                             <FormControl>
                               <Switch
@@ -440,17 +527,28 @@ export default function EditJobPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Language Requirement</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select language level" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="Basic English">Basic English</SelectItem>
-                                <SelectItem value="Conversational English">Conversational English</SelectItem>
-                                <SelectItem value="Fluent English">Fluent English</SelectItem>
-                                <SelectItem value="Native Speaker">Native Speaker</SelectItem>
+                                <SelectItem value="Basic English">
+                                  Basic English
+                                </SelectItem>
+                                <SelectItem value="Conversational English">
+                                  Conversational English
+                                </SelectItem>
+                                <SelectItem value="Fluent English">
+                                  Fluent English
+                                </SelectItem>
+                                <SelectItem value="Native Speaker">
+                                  Native Speaker
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -490,7 +588,7 @@ export default function EditJobPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => router.push('/employer/dashboard')}
+                      onClick={() => router.push("/employer/dashboard")}
                       disabled={form.formState.isSubmitting}
                     >
                       Cancel

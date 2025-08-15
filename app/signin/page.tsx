@@ -225,7 +225,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "react-hot-toast";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { stat } from "fs";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -258,7 +259,7 @@ export default function SignInPage() {
         throw new Error(result.error);
       }
 
-      toast.success("Signed in successfully!", { position: "top-center" });
+      toast.success("Signed in successfully!", { position: "top-center" }); 
       router.push("/employer/dashboard"); 
     } catch (error) {
       toast.error(
