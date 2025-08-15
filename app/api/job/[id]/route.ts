@@ -150,3 +150,11 @@ export async function DELETE(
     );
   }
 }
+
+// Optional: support PUT by delegating to PATCH for idempotent updates
+export async function PUT(
+  request: Request,
+  ctx: { params: { id: string } }
+) {
+  return PATCH(request, ctx);
+}

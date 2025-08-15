@@ -1,24 +1,51 @@
 "use client";
 
-import { AuthGuard } from '@/components/auth';
-import { Container, Section } from '@/components/common';
+import { AuthGuard } from "@/components/auth";
+import { Container, Section } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Save, MapPin, Clock, User, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import {
+  Save,
+  MapPin,
+  Clock,
+  User,
+  CheckCircle,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 // Zod schema matching our API validation
 const jobFormSchema = z.object({
@@ -80,109 +107,190 @@ export default function PostJobPage() {
         deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
       };
 
-      const response = await fetch('/api/job', {
-        method: 'POST',
-        credentials: 'include',
+      const response = await fetch("/api/job", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to post job');
+        throw new Error(errorData.error || "Failed to post job");
       }
 
       const job = await response.json();
-      
-      toast.success("Job posted successfully! Your job is now pending approval.");
+
+      toast.success(
+        "Job posted successfully! Your job is now pending approval."
+      );
 
       // Redirect to job listing or dashboard
-      router.push('/employer/dashboard');
-      
+      router.push("/employer/dashboard");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error posting job. Please try again.");
-            
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error posting job. Please try again."
+      );
     }
   };
 
   return (
+    <Section padding="sm">
+      <Container size="xl">
+        <div className="space-y-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              Post a Caregiver Job
+            </h1>
+            <p className="text-slate-600">
+              Find the perfect caregiver for your needs
+            </p>
+          </div>
 
-      <Section padding="sm">
-        <Container size="xl">
-          <div className="space-y-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Post a Caregiver Job</h1>
-              <p className="text-slate-600">Find the perfect caregiver for your needs</p>
-            </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Job Details</CardTitle>
+              <CardDescription>
+                Fill out all required fields to post your job
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-8"
+                >
+                  {/* Basic Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-blue-600" />
+                      Basic Information
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Job Title{" "}
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 text-xs"
+                            >
+                              Required
+                            </Badge>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., Caregiver Needed for Elderly Patient"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Job Details</CardTitle>
-                <CardDescription>Fill out all required fields to post your job</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    {/* Basic Information */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-blue-600" />
-                        Basic Information
-                      </h3>
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Location (City, State){" "}
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 text-xs"
+                            >
+                              Required
+                            </Badge>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., Portland, OR"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Job Description{" "}
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 text-xs"
+                            >
+                              Required
+                            </Badge>
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe the job responsibilities and expectations..."
+                              rows={4}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Schedule & Shift Details */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-green-600" />
+                      Schedule Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="title"
+                        name="schedule_start"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Job Title <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+                              Start Date & Time{" "}
+                              <Badge
+                                variant="destructive"
+                                className="ml-1 text-xs"
+                              >
+                                Required
+                              </Badge>
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="e.g., Caregiver Needed for Elderly Patient"
-                                {...field}
-                              />
+                              <Input type="datetime-local" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={form.control}
-                        name="location"
+                        name="schedule_end"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Location (City, State) <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
+                              End Date & Time{" "}
+                              <Badge
+                                variant="destructive"
+                                className="ml-1 text-xs"
+                              >
+                                Required
+                              </Badge>
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="e.g., Portland, OR"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Job Description <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
-                            </FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Describe the job responsibilities and expectations..."
-                                rows={4}
-                                {...field}
-                              />
+                              <Input type="datetime-local" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -190,115 +298,190 @@ export default function PostJobPage() {
                       />
                     </div>
 
-                    {/* Schedule & Shift Details */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-green-600" />
-                        Schedule Details
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="schedule_start"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
-                                Start Date & Time <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="datetime-local"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="schedule_end"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
-                                End Date & Time <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="datetime-local"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                    <FormField
+                      control={form.control}
+                      name="deadline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Application Deadline (Optional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
+                    <FormField
+                      control={form.control}
+                      name="shift_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Shift Type{" "}
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 text-xs"
+                            >
+                              Required
+                            </Badge>
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select shift type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Weekday">Weekday</SelectItem>
+                              <SelectItem value="Weekend">Weekend</SelectItem>
+                              <SelectItem value="Overnight">
+                                Overnight
+                              </SelectItem>
+                              <SelectItem value="Live-in">Live-in</SelectItem>
+                              <SelectItem value="One-time">One-time</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="job_urgency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Job Urgency</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select urgency level" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="LOW">Low</SelectItem>
+                              <SelectItem value="MEDIUM">Medium</SelectItem>
+                              <SelectItem value="HIGH">High</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Caregiver Preferences */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <User className="h-5 w-5 text-purple-600" />
+                      Caregiver Preferences
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="gender_preference"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Gender Preference</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex gap-6"
+                            >
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <RadioGroupItem value="Male" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Male
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <RadioGroupItem value="Female" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Female
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <RadioGroupItem value="No preference" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  No preference
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Separator />
+
+                    <div className="space-y-4">
                       <FormField
                         control={form.control}
-                        name="deadline"
+                        name="driving_license_required"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Application Deadline (Optional)</FormLabel>
+                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel>Driving License Required?</FormLabel>
+                              <p className="text-sm text-gray-500">
+                                Must have valid driver's license
+                              </p>
+                            </div>
                             <FormControl>
-                              <Input
-                                type="datetime-local"
-                                {...field}
-                                value={field.value || ""}
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
                               />
                             </FormControl>
-                            <FormMessage />
                           </FormItem>
                         )}
                       />
 
                       <FormField
                         control={form.control}
-                        name="shift_type"
+                        name="language_level_requirement"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>
-                              Shift Type <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>
-                            </FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select shift type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="Weekday">Weekday</SelectItem>
-                                <SelectItem value="Weekend">Weekend</SelectItem>
-                                <SelectItem value="Overnight">Overnight</SelectItem>
-                                <SelectItem value="Live-in">Live-in</SelectItem>
-                                <SelectItem value="One-time">One-time</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="job_urgency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Job Urgency</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              value={field.value || ""}
+                            <FormLabel>Language Requirement</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select urgency level" />
+                                  <SelectValue placeholder="Select language level" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="LOW">Low</SelectItem>
-                                <SelectItem value="MEDIUM">Medium</SelectItem>
-                                <SelectItem value="HIGH">High</SelectItem>
+                                <SelectItem value="Basic English">
+                                  Basic English
+                                </SelectItem>
+                                <SelectItem value="Conversational English">
+                                  Conversational English
+                                </SelectItem>
+                                <SelectItem value="Fluent English">
+                                  Fluent English
+                                </SelectItem>
+                                <SelectItem value="Native Speaker">
+                                  Native Speaker
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -306,157 +489,66 @@ export default function PostJobPage() {
                         )}
                       />
                     </div>
+                  </div>
 
-                    {/* Caregiver Preferences */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <User className="h-5 w-5 text-purple-600" />
-                        Caregiver Preferences
-                      </h3>
-                      <FormField
-                        control={form.control}
-                        name="gender_preference"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel>Gender Preference</FormLabel>
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex gap-6"
-                              >
-                                <FormItem className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <RadioGroupItem value="Male" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">Male</FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <RadioGroupItem value="Female" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">Female</FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <RadioGroupItem value="No preference" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">No preference</FormLabel>
-                                </FormItem>
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                  {/* Caregiver Requirements */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-orange-600" />
+                      Caregiver Requirements
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="job_requirements"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Requirements</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="List any specific requirements (e.g., First Aid/CPR certified, experience with dementia patients, etc.)"
+                              rows={3}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                      <Separator />
-
-                      <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="driving_license_required"
-                          render={({ field }) => (
-                            <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                              <div className="space-y-0.5">
-                                <FormLabel>Driving License Required?</FormLabel>
-                                <p className="text-sm text-gray-500">Must have valid driver's license</p>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="language_level_requirement"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Language Requirement</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select language level" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Basic English">Basic English</SelectItem>
-                                  <SelectItem value="Conversational English">Conversational English</SelectItem>
-                                  <SelectItem value="Fluent English">Fluent English</SelectItem>
-                                  <SelectItem value="Native Speaker">Native Speaker</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Caregiver Requirements */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-orange-600" />
-                        Caregiver Requirements
-                      </h3>
-                      <FormField
-                        control={form.control}
-                        name="job_requirements"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Requirements</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="List any specific requirements (e.g., First Aid/CPR certified, experience with dementia patients, etc.)"
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex justify-end gap-4 pt-6">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => router.back()}
-                        disabled={form.formState.isSubmitting}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={form.formState.isSubmitting}
-                      >
-                        {form.formState.isSubmitting ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Submitting...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="h-4 w-4 mr-2" />
-                            Submit Job
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </div>
-        </Container>
-      </Section>
-
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-4 pt-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.back()}
+                      disabled={form.formState.isSubmitting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={form.formState.isSubmitting}
+                    >
+                      {form.formState.isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Submit Job
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+      </Container>
+    </Section>
   );
 }
