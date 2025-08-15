@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/common/header";
-import { Footer } from "@/components/layout/footer";
+import { FooterGate } from "@/components/common/footer-gate";
 import { Toaster } from "react-hot-toast";
 import AuthProvider from "./providers/provider";
 import { authOptions } from "@/app/api/auth/authOptions";
@@ -33,7 +33,7 @@ export default async function RootLayout({
             <Header />
             <Toaster />
             <main className="flex-1">{children}</main>
-            <Footer />
+            <FooterGate />
           </div>
         </AuthProvider>
       </body>

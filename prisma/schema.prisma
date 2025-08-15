@@ -10,11 +10,9 @@ generator client {
 }
 
 datasource db {
-
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   // directUrl = env("DIRECT_URL") 
-
 }
 
 enum Role {
@@ -25,14 +23,16 @@ enum Role {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  fullname   String
-  email      String   @unique
-  password   String
-  role       Role
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  Job        Job[]
+  id          String        @id @default(cuid())
+  fullname    String
+  email       String        @unique
+  password    String
+  role        Role
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  Job         Job[]
+  Application Application[]
+  Portfolio   Portfolio[]
 }
 
 model Job {
@@ -58,7 +58,8 @@ model Job {
   job_urgency                JobUrgency?
 
   // Relations
-  employer User @relation(fields: [employer_id], references: [id])
+  employer    User          @relation(fields: [employer_id], references: [id])
+  Application Application[]
 }
 
 enum JobStatus {
@@ -73,4 +74,58 @@ enum JobUrgency {
   LOW
   MEDIUM
   HIGH
+}
+
+model Application {
+  id           Int               @id @default(autoincrement())
+  job_id       Int
+  employee_id  String
+  portfolio_id Int
+  applied_at   DateTime          @default(now())
+  cover_letter String?
+  status       ApplicationStatus @default(PENDING)
+  reviewed_by  String?
+  reviewed_at  DateTime?
+  note         String?
+  is_reviewed  Boolean           @default(false)
+
+  // Relations
+  job       Job       @relation(fields: [job_id], references: [id])
+  employee  User      @relation(fields: [employee_id], references: [id])
+  portfolio Portfolio @relation(fields: [portfolio_id], references: [id])
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Portfolio {
+  id                            Int       @id @default(autoincrement())
+  user_id                       String
+  sex                           String
+  phone_no                      String
+  age                           Int
+  certifications                String? // nullable if not everyone has certifications
+  experience                    String?
+  state_where_experience_gained String?
+  suitable_work_days            String?
+  suitable_work_shift           String?
+  comfortability                String
+  university_college            String?
+  study_field                   String?
+  degree                        String?
+  english_skill                 String
+  us_living_years               Int?
+  is_verified                   Boolean   @default(false)
+  verified_by                   String?
+  verified_at                   DateTime?
+  created_at                    DateTime  @default(now())
+  updated_at                    DateTime  @updatedAt
+  profile_image                 String?
+
+  // Relations
+  user        User          @relation(fields: [user_id], references: [id])
+  Application Application[]
 }

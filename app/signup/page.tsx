@@ -76,7 +76,7 @@
 
 //   const handleSubmit = async (e: React.FormEvent) => {
 //     e.preventDefault()
-    
+
 //     if (!validateForm()) {
 //       return
 //     }
@@ -299,7 +299,7 @@
 //                   </div>
 //                 )}
 //               </Button>
-//             </form> 
+//             </form>
 
 //             <div className="mt-6 text-center">
 //               <p className="text-slate-600">
@@ -391,7 +391,9 @@ export default function SignUpPage() {
         throw new Error(err.error || "Failed to sign up");
       }
 
-      toast.success("Account created successfully!", { position: "top-center" });
+      toast.success("Account created successfully!", {
+        position: "top-center",
+      });
       router.push("/signin");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Unexpected error", {
@@ -403,177 +405,255 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
-              <User className="text-white w-7 h-7" />
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100/40">
+      {/* Background accents */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-300/25 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -left-10 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12">
+        <div className="grid lg:grid-cols-2 gap-10 xl:gap-16 items-center">
+          {/* Left: Form */}
+          <div>
+            <div className="mb-6 text-center lg:text-left">
+              <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 mb-2">
+                Create your account
+              </h1>
+              <p className="text-slate-600">Join FIGA Care to get started</p>
+            </div>
+
+            <div className="w-full max-w-md lg:max-w-lg mx-auto lg:mx-0">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6 bg-white/90 backdrop-blur rounded-2xl border border-slate-200 shadow-xl p-6"
+                >
+                  {/* Role Selection */}
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700">
+                          I am a...
+                        </FormLabel>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="grid grid-cols-2 gap-4"
+                        >
+                          <label
+                            className={`p-4 border rounded-lg cursor-pointer text-center ${
+                              field.value === "EMPLOYEE"
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-slate-200"
+                            }`}
+                          >
+                            <RadioGroupItem
+                              value="EMPLOYEE"
+                              className="sr-only"
+                            />
+                            Employee
+                          </label>
+                          <label
+                            className={`p-4 border rounded-lg cursor-pointer text-center ${
+                              field.value === "EMPLOYER"
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-slate-200"
+                            }`}
+                          >
+                            <RadioGroupItem
+                              value="EMPLOYER"
+                              className="sr-only"
+                            />
+                            Employer
+                          </label>
+                        </RadioGroup>
+                        <FormMessage className="text-red-500 text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Full Name */}
+                  <FormField
+                    control={form.control}
+                    name="fullname"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700">
+                          Full Name
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="John Doe" />
+                        </FormControl>
+                        <FormMessage className="text-red-500 text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Email */}
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700">
+                          Email Address
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="your@email.com"
+                            type="email"
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-500 text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Password */}
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700">
+                          Password
+                        </FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                            />
+                          </FormControl>
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-5 h-5" />
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                        <ul className="text-xs text-gray-500 mt-1 space-y-1">
+                          <li
+                            className={
+                              field.value?.length >= 8 ? "text-green-500" : ""
+                            }
+                          >
+                            • At least 8 characters
+                          </li>
+                          <li
+                            className={
+                              /[A-Z]/.test(field.value) ? "text-green-500" : ""
+                            }
+                          >
+                            • One uppercase letter
+                          </li>
+                          <li
+                            className={
+                              /[a-z]/.test(field.value) ? "text-green-500" : ""
+                            }
+                          >
+                            • One lowercase letter
+                          </li>
+                          <li
+                            className={
+                              /[0-9]/.test(field.value) ? "text-green-500" : ""
+                            }
+                          >
+                            • One number
+                          </li>
+                        </ul>
+                        <FormMessage className="text-red-500 text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Confirm Password */}
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700">
+                          Confirm Password
+                        </FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type={showConfirmPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                            />
+                          </FormControl>
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="w-5 h-5" />
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                        <FormMessage className="text-red-500 text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-lg hover:shadow-xl"
+                  >
+                    {isLoading ? "Creating Account..." : "Create Account"}
+                  </Button>
+
+                  <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                    Already have an account?{" "}
+                    <Link
+                      href="/signin"
+                      className="font-medium text-blue-600 hover:text-blue-500"
+                    >
+                      Sign in
+                    </Link>
+                  </div>
+                </form>
+              </Form>
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Join Our Platform
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Create your account to get started
-          </p>
-        </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Role Selection */}
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 dark:text-gray-300">
-                    I am a...
-                  </FormLabel>
-                  <RadioGroup
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    className="grid grid-cols-2 gap-4"
-                  >
-                    <label className={`p-4 border rounded-lg cursor-pointer text-center ${field.value === "EMPLOYEE" ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}>
-                      <RadioGroupItem value="EMPLOYEE" className="sr-only" />
-                      Employee
-                    </label>
-                    <label className={`p-4 border rounded-lg cursor-pointer text-center ${field.value === "EMPLOYER" ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}>
-                      <RadioGroupItem value="EMPLOYER" className="sr-only" />
-                      Employer
-                    </label>
-                  </RadioGroup>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            {/* Full Name */}
-            <FormField
-              control={form.control}
-              name="fullname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 dark:text-gray-300">
-                    Full Name
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="John Doe" />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            {/* Email */}
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 dark:text-gray-300">
-                    Email Address
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="your@email.com" type="email" />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            {/* Password */}
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 dark:text-gray-300">
-                    Password
-                  </FormLabel>
-                  <div className="relative">
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                      />
-                    </FormControl>
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  <ul className="text-xs text-gray-500 mt-1 space-y-1">
-                    <li className={field.value?.length >= 8 ? "text-green-500" : ""}>
-                      • At least 8 characters
-                    </li>
-                    <li className={/[A-Z]/.test(field.value) ? "text-green-500" : ""}>
-                      • One uppercase letter
-                    </li>
-                    <li className={/[a-z]/.test(field.value) ? "text-green-500" : ""}>
-                      • One lowercase letter
-                    </li>
-                    <li className={/[0-9]/.test(field.value) ? "text-green-500" : ""}>
-                      • One number
-                    </li>
-                  </ul>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            {/* Confirm Password */}
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 dark:text-gray-300">
-                    Confirm Password
-                  </FormLabel>
-                  <div className="relative">
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                      />
-                    </FormControl>
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
-            >
-              {isLoading ? "Creating Account..." : "Create Account"}
-            </Button>
-
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              Already have an account?{" "}
-              <Link href="/signin" className="font-medium text-blue-600 hover:text-blue-500">
-                Sign in
-              </Link>
+          {/* Right: Visual panel (desktop only) */}
+          <div className="hidden lg:block">
+            <div className="relative h-[620px] w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
+              {/* Animated gradient background */}
+              <div
+                className="absolute inset-0 animate-gradient-move bg-gradient-to-br from-blue-600 via-purple-500 to-pink-400"
+                style={{ backgroundSize: "200% 200%" }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/20 to-transparent" />
+              <div className="absolute bottom-0 p-8 text-white space-y-3">
+                <p className="text-slate-100 text-lg max-w-md">
+                  Join FIGA and connect with trusted caregivers and families.
+                </p>
+              </div>
             </div>
-          </form>
-        </Form>
+          </div>
+        </div>
       </div>
     </div>
   );

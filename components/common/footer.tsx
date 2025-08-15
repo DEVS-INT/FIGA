@@ -1,9 +1,22 @@
 import Link from "next/link"
 import { FigaLogo } from "@/components/figa-logo"
 import { Mail, Phone, MapPin } from "lucide-react"
+import { usePathname } from "next/navigation";
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
+  const pathname = usePathname();
+
+  if ([
+    "@/signin",
+    "@/signup",
+    "/signout",
+    "/admin",
+    "/admin/users",
+    "/admin/todos",
+  ].includes(pathname)) {
+    return null;
+  }
 
   return (
     <footer className="bg-slate-900 text-white">
