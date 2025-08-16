@@ -76,7 +76,7 @@ export default function HomePage() {
                 </Badge>
 
                 <div className="space-y-6">
-                  <h1 className="text-5xl lg:text-7xl font-bold text-slate-900 leading-tight">
+                  <h1 className="text-4xl lg:text-6xl font-bold text-slate-900 leading-tight">
                     <span>
                       {headWord}{" "}
                       <span>
