@@ -14,6 +14,7 @@ export function FooterGate() {
     "/signout",
     /^\/caregiver\/dashboard(\/.*)?$/,
     /^\/employer\/dashboard(\/.*)?$/,
+    /^\/caregiver\/portfolio(\/.*)?$/,
   ];
 
   const hide = hiddenRoutes.some((rule) =>
