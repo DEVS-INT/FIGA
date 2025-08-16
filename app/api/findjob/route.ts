@@ -34,13 +34,14 @@ export async function GET(request: Request) {
       where.status = status;
     }
 
-    const jobs = await prisma.job.findMany({
+  const jobs = await prisma.job.findMany({
       where,
       take: take ? parseInt(take) : undefined,
       skip: skip ? parseInt(skip) : undefined,
       orderBy: { posted_at: 'desc' },
       include: {
         employer: { select: { fullname: true, email: true } },
+    _count: { select: { Application: true } },
       },
     });
 
@@ -73,8 +74,8 @@ export async function GET(request: Request) {
         additionalNotes: null as string | null,
         contactInfo: job.employer?.email ?? '—',
         posted: formatDistanceToNow(job.posted_at, { addSuffix: true }),
-        urgent: job.job_urgency === 'HIGH',
-        applicants: 0,
+  urgent: job.job_urgency === 'HIGH',
+  applicants: (job as any)._count?.Application ?? 0,
       };
     });
 

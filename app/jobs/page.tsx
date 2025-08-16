@@ -10,6 +10,7 @@ import {
   MapPin,
   Clock,
   DollarSign,
+  Loader2,
   Heart,
   Users,
   Calendar,
@@ -24,6 +25,16 @@ import {
   Languages,
 } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { toast } from "react-hot-toast";
 
 // Simple Select Component
 const SimpleSelect = ({
@@ -76,6 +87,8 @@ const SimpleSelect = ({
 };
 
 export default function JobsPage() {
+  const { status, data: session } = useSession();
+  const router = useRouter();
   type JobCard = {
     id: number;
     title: string;
@@ -107,8 +120,23 @@ export default function JobsPage() {
   const [requirementsFilter, setRequirementsFilter] = useState("");
 
   const [jobs, setJobs] = useState<JobCard[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [applyOpen, setApplyOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<JobCard | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [coverLetter, setCoverLetter] = useState("");
+  // Keep a stable view while the modal is open
+  const [filtersSnapshot, setFiltersSnapshot] = useState<{
+    searchTerm: string;
+    locationFilter: string;
+    shiftTypeFilter: string;
+    genderPreferenceFilter: string;
+    requirementsFilter: string;
+  } | null>(null);
+  const [filteredJobsSnapshot, setFilteredJobsSnapshot] = useState<
+    JobCard[] | null
+  >(null);
 
   useEffect(() => {
     const load = async () => {
@@ -173,7 +201,7 @@ export default function JobsPage() {
   // Filter jobs based on search criteria
   const filteredJobs = useMemo(
     () =>
-      jobs.filter((job: JobCard) => {
+      (applyOpen ? jobs : jobs).filter((job: JobCard) => {
         const matchesSearch =
           job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -234,8 +262,13 @@ export default function JobsPage() {
       shiftTypeFilter,
       genderPreferenceFilter,
       requirementsFilter,
+      applyOpen,
     ]
   );
+
+  // Use a snapshot while modal is open to avoid background state changes affecting the list
+  const displayJobs =
+    applyOpen && filteredJobsSnapshot ? filteredJobsSnapshot : filteredJobs;
 
   const getStatusBadge = (isOpen: boolean, urgent: boolean) => {
     if (!isOpen) {
@@ -260,7 +293,74 @@ export default function JobsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100/30">
+    <div
+      className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100/30 ${
+        applyOpen ? "pointer-events-none" : ""
+      }`}
+    >
+      <ApplyModal
+        open={applyOpen}
+        onOpenChange={(v) => {
+          setApplyOpen(v);
+          if (!v) {
+            // Restore filters if changed while modal was open
+            if (filtersSnapshot) {
+              setSearchTerm(filtersSnapshot.searchTerm);
+              setLocationFilter(filtersSnapshot.locationFilter);
+              setShiftTypeFilter(filtersSnapshot.shiftTypeFilter);
+              setGenderPreferenceFilter(filtersSnapshot.genderPreferenceFilter);
+              setRequirementsFilter(filtersSnapshot.requirementsFilter);
+            }
+            setFilteredJobsSnapshot(null);
+            setFiltersSnapshot(null);
+            setSelectedJob(null);
+            setCoverLetter("");
+          }
+        }}
+        job={selectedJob}
+        note={coverLetter}
+        setNote={setCoverLetter}
+        submitting={submitting}
+        onSubmit={async () => {
+          if (!selectedJob) return;
+          try {
+            setSubmitting(true);
+            const res = await fetch("/api/applications", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ jobId: selectedJob.id, coverLetter }),
+            });
+            if (res.status === 401) {
+              toast.error("Please sign in as an employee to apply.");
+              window.location.href = `/signin?callbackUrl=${encodeURIComponent(
+                "/jobs"
+              )}`;
+              return;
+            }
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              toast.error(data?.error || "Failed to apply");
+              return;
+            }
+            toast.success("Application submitted!");
+            // Optimistically increment the applicants count for the selected job
+            setJobs((prev) =>
+              prev.map((j: any) =>
+                j.id === selectedJob.id
+                  ? { ...j, applicants: (j.applicants ?? 0) + 1 }
+                  : j
+              )
+            );
+            setApplyOpen(false);
+            setSelectedJob(null);
+            setCoverLetter("");
+          } catch (e) {
+            toast.error("Something went wrong");
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+      />
       {/* Hero Banner */}
       <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-800 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -373,7 +473,7 @@ export default function JobsPage() {
                   ? "Loading jobs…"
                   : error
                   ? "Error loading jobs"
-                  : `Showing ${filteredJobs.length} of ${jobs.length} jobs`}
+                  : `Showing ${displayJobs.length} of ${jobs.length} jobs`}
               </p>
               <Button
                 variant="outline"
@@ -397,154 +497,200 @@ export default function JobsPage() {
       <section className="py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
-            <div className="grid gap-6">
-              {filteredJobs.map((job) => (
-                <Card
-                  key={job.id}
-                  className="border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden"
-                >
-                  <CardContent className="p-8">
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                      {/* Job Info */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2 flex-wrap">
-                              <h3 className="text-2xl font-bold text-slate-900">
-                                {job.title}
-                              </h3>
-                              {getStatusBadge(job.isOpen, job.urgent)}
-                            </div>
-                            <div className="flex items-center text-slate-600 mb-2">
-                              <Building2 className="w-4 h-4 mr-2" />
-                              <span className="font-medium">{job.company}</span>
+            {loading ? (
+              <div className="flex items-center justify-center py-24">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
+                <span className="text-slate-600 font-medium">
+                  Loading jobs…
+                </span>
+              </div>
+            ) : (
+              <div className="grid gap-6">
+                {displayJobs.map((job) => (
+                  <Card
+                    key={job.id}
+                    className="border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden"
+                  >
+                    <CardContent className="p-8">
+                      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                        {/* Job Info */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                <h3 className="text-2xl font-bold text-slate-900">
+                                  {job.title}
+                                </h3>
+                                {getStatusBadge(job.isOpen, job.urgent)}
+                              </div>
+                              <div className="flex items-center text-slate-600 mb-2">
+                                <Building2 className="w-4 h-4 mr-2" />
+                                <span className="font-medium">
+                                  {job.company}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Job Details Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                          <div className="flex items-center text-slate-600">
-                            <MapPin className="w-4 h-4 mr-2 text-blue-600" />
-                            <span>{job.location}</span>
-                          </div>
-                          <div className="flex items-center text-slate-600">
-                            <Clock className="w-4 h-4 mr-2 text-green-600" />
-                            <span>{job.duration}</span>
-                          </div>
-                          <div className="flex items-center text-slate-600">
-                            <DollarSign className="w-4 h-4 mr-2 text-purple-600" />
-                            <span className="font-semibold">{job.salary}</span>
-                          </div>
-                          <div className="flex items-center text-slate-600">
-                            <User className="w-4 h-4 mr-2 text-orange-600" />
-                            <span>{job.genderPreference}</span>
-                          </div>
-                          <div className="flex items-center text-slate-600">
-                            <Languages className="w-4 h-4 mr-2 text-indigo-600" />
-                            <span>{job.communicationLevel} English</span>
-                          </div>
-                          {job.drivingRequired && (
+                          {/* Job Details Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                             <div className="flex items-center text-slate-600">
-                              <Car className="w-4 h-4 mr-2 text-red-600" />
-                              <span>Driving Required</span>
+                              <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+                              <span>{job.location}</span>
+                            </div>
+                            <div className="flex items-center text-slate-600">
+                              <Clock className="w-4 h-4 mr-2 text-green-600" />
+                              <span>{job.duration}</span>
+                            </div>
+                            <div className="flex items-center text-slate-600">
+                              <DollarSign className="w-4 h-4 mr-2 text-purple-600" />
+                              <span className="font-semibold">
+                                {job.salary}
+                              </span>
+                            </div>
+                            <div className="flex items-center text-slate-600">
+                              <User className="w-4 h-4 mr-2 text-orange-600" />
+                              <span>{job.genderPreference}</span>
+                            </div>
+                            <div className="flex items-center text-slate-600">
+                              <Languages className="w-4 h-4 mr-2 text-indigo-600" />
+                              <span>{job.communicationLevel} English</span>
+                            </div>
+                            {job.drivingRequired && (
+                              <div className="flex items-center text-slate-600">
+                                <Car className="w-4 h-4 mr-2 text-red-600" />
+                                <span>Driving Required</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Shift Types */}
+                          <div className="mb-4">
+                            <h4 className="font-semibold text-slate-900 mb-2">
+                              Shift Types:
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {job.shiftTypes.map((shift, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="outline"
+                                  className="text-blue-600 border-blue-300 bg-blue-50"
+                                >
+                                  {shift}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Description */}
+                          <p className="text-slate-700 mb-4 leading-relaxed text-base">
+                            {job.description}
+                          </p>
+
+                          {/* Requirements */}
+                          <div className="mb-4">
+                            <h4 className="font-semibold text-slate-900 mb-2">
+                              Requirements:
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {job.requirements.map((req, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="outline"
+                                  className="text-slate-600 border-slate-300"
+                                >
+                                  {req}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Additional Notes */}
+                          {job.additionalNotes && (
+                            <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                              <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
+                                <AlertCircle className="w-4 h-4 mr-2" />
+                                Additional Notes:
+                              </h4>
+                              <p className="text-blue-800 text-sm">
+                                {job.additionalNotes}
+                              </p>
                             </div>
                           )}
-                        </div>
 
-                        {/* Shift Types */}
-                        <div className="mb-4">
-                          <h4 className="font-semibold text-slate-900 mb-2">
-                            Shift Types:
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {job.shiftTypes.map((shift, index) => (
-                              <Badge
-                                key={index}
-                                variant="outline"
-                                className="text-blue-600 border-blue-300 bg-blue-50"
-                              >
-                                {shift}
-                              </Badge>
-                            ))}
+                          {/* Footer (contact removed) */}
+                          <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+                            <div className="flex items-center gap-4 text-sm text-slate-500">
+                              <span>Posted {job.posted}</span>
+                              <span>•</span>
+                              <span>{job.applicants} applicants</span>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Description */}
-                        <p className="text-slate-700 mb-4 leading-relaxed text-base">
-                          {job.description}
-                        </p>
-
-                        {/* Requirements */}
-                        <div className="mb-4">
-                          <h4 className="font-semibold text-slate-900 mb-2">
-                            Requirements:
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {job.requirements.map((req, index) => (
-                              <Badge
-                                key={index}
-                                variant="outline"
-                                className="text-slate-600 border-slate-300"
-                              >
-                                {req}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Additional Notes */}
-                        {job.additionalNotes && (
-                          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
-                              <AlertCircle className="w-4 h-4 mr-2" />
-                              Additional Notes:
-                            </h4>
-                            <p className="text-blue-800 text-sm">
-                              {job.additionalNotes}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Footer (contact removed) */}
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                          <div className="flex items-center gap-4 text-sm text-slate-500">
-                            <span>Posted {job.posted}</span>
-                            <span>•</span>
-                            <span>{job.applicants} applicants</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Apply Button */}
-                      <div className="lg:ml-8 flex-shrink-0">
-                        {job.isOpen ? (
-                          <Link href="/signup">
+                        {/* Apply Button */}
+                        <div className="lg:ml-8 flex-shrink-0">
+                          {job.isOpen ? (
                             <Button
                               size="lg"
+                              onClick={() => {
+                                const isAuthed = status === "authenticated";
+                                const isEmployee =
+                                  isAuthed &&
+                                  session?.user?.role === "EMPLOYEE";
+                                if (!isEmployee) {
+                                  toast.error(
+                                    "Please sign in as an employee to apply."
+                                  );
+                                  router.push(
+                                    `/signin?callbackUrl=${encodeURIComponent(
+                                      "/jobs"
+                                    )}`
+                                  );
+                                  return;
+                                }
+                                // Move focus away from background inputs (like search), then open modal
+                                if (
+                                  typeof document !== "undefined" &&
+                                  document.activeElement instanceof HTMLElement
+                                ) {
+                                  document.activeElement.blur();
+                                }
+                                // Snapshot current filters and results for stability while modal is open
+                                setFiltersSnapshot({
+                                  searchTerm,
+                                  locationFilter,
+                                  shiftTypeFilter,
+                                  genderPreferenceFilter,
+                                  requirementsFilter,
+                                });
+                                setFilteredJobsSnapshot(filteredJobs);
+                                setSelectedJob(job);
+                                setApplyOpen(true);
+                              }}
                               className="w-full lg:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-8 py-4 text-base font-semibold rounded-2xl"
                             >
                               Apply Now
                             </Button>
-                          </Link>
-                        ) : (
-                          <Button
-                            size="lg"
-                            disabled
-                            className="w-full lg:w-auto px-8 py-4 text-base font-semibold rounded-2xl"
-                          >
-                            Position Closed
-                          </Button>
-                        )}
+                          ) : (
+                            <Button
+                              size="lg"
+                              disabled
+                              className="w-full lg:w-auto px-8 py-4 text-base font-semibold rounded-2xl"
+                            >
+                              Position Closed
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             {/* No Results */}
-            {filteredJobs.length === 0 && (
+            {!loading && !error && displayJobs.length === 0 && (
               <div className="text-center py-16">
                 <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="w-12 h-12 text-slate-400" />
@@ -574,5 +720,59 @@ export default function JobsPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+// Apply Modal implementation
+function ApplyModal({
+  open,
+  onOpenChange,
+  job,
+  note,
+  setNote,
+  submitting,
+  onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  job: any;
+  note: string;
+  setNote: (v: string) => void;
+  submitting: boolean;
+  onSubmit: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg pointer-events-auto">
+        <DialogHeader>
+          <DialogTitle>Apply to {job?.title}</DialogTitle>
+          <DialogDescription>
+            You’re applying to {job?.company} • {job?.location}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="text-sm text-slate-600">Cover letter (optional)</div>
+          <textarea
+            className="w-full min-h-28 rounded-md border border-slate-300 p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Write a brief cover letter to strengthen your application (optional)"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            autoFocus
+          />
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={onSubmit} disabled={submitting}>
+              {submitting ? "Applying…" : "Submit Application"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
