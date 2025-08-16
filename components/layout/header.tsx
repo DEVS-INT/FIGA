@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { FigaLogo } from "@/components/figa-logo"
-import { Menu, X } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { FigaLogo } from "@/components/figa-logo";
+import { Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,24 +14,24 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface HeaderProps {
-  variant?: "default" | "employer" | "caregiver"
+  variant?: "default" | "employer" | "caregiver";
 }
 
 export function Header({ variant = "default" }: HeaderProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const pathname = usePathname()
-  
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
   // Temporary authentication state - replace with your actual auth context
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState({
     name: "John Doe",
     email: "john@example.com",
-    imageUrl: "https://github.com/shadcn.png"
-  })
+    imageUrl: "https://github.com/shadcn.png",
+  });
 
   const getNavLinks = () => {
     switch (variant) {
@@ -41,45 +41,45 @@ export function Header({ variant = "default" }: HeaderProps) {
           { href: "/employer/post-job", label: "Post Job" },
           { href: "/jobs", label: "Browse Caregivers" },
           { href: "/about", label: "About" },
-        ]
+        ];
       case "caregiver":
         return [
           { href: "/caregiver/dashboard", label: "Dashboard" },
           { href: "/jobs", label: "Find Jobs" },
-          { href: "/caregiver/profile", label: "Profile" },
+          { href: "/caregiver/portfolio", label: "Portfolio" },
           { href: "/about", label: "About" },
-        ]
+        ];
       default:
         return [
           { href: "/jobs", label: "Find Jobs" },
           { href: "/about", label: "About Us" },
           { href: "/faq", label: "FAQ" },
-        ]
+        ];
     }
-  }
+  };
 
-  const navLinks = getNavLinks()
+  const navLinks = getNavLinks();
 
   const isActiveLink = (href: string) => {
-    if (href === "/" && pathname === "/") return true
-    if (href !== "/" && pathname.startsWith(href)) return true
-    return false
-  }
+    if (href === "/" && pathname === "/") return true;
+    if (href !== "/" && pathname.startsWith(href)) return true;
+    return false;
+  };
 
   // Temporary authentication handlers
   const handleLogin = () => {
-    setIsAuthenticated(true)
+    setIsAuthenticated(true);
     setUser({
       name: "Jane Smith",
       email: "jane@example.com",
-      imageUrl: "https://github.com/shadcn.png"
-    })
-  }
+      imageUrl: "https://github.com/shadcn.png",
+    });
+  };
 
   const handleLogout = () => {
-    setIsAuthenticated(false)
-    setMobileMenuOpen(false)
-  }
+    setIsAuthenticated(false);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="border-b border-white/20 bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50 shadow-sm">
@@ -103,14 +103,16 @@ export function Header({ variant = "default" }: HeaderProps) {
                 href={link.href}
                 className={cn(
                   "text-slate-700 hover:text-blue-600 transition-all duration-300 font-medium relative group px-3 py-2 rounded-lg",
-                  isActiveLink(link.href) && "text-blue-600  shadow-sm",
+                  isActiveLink(link.href) && "text-blue-600  shadow-sm"
                 )}
               >
                 {link.label}
                 <span
                   className={cn(
                     "absolute -bottom-1 left-3 right-3 h-0.5 bg-gradient-to-r from-blue-600 to-blue-800 transition-all duration-300",
-                    isActiveLink(link.href) ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+                    isActiveLink(link.href)
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
                   )}
                 />
               </Link>
@@ -123,10 +125,7 @@ export function Header({ variant = "default" }: HeaderProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Avatar className="cursor-pointer border-2 border-blue-500 hover:scale-105 transition-transform">
-                    <AvatarImage 
-                      src={user.imageUrl} 
-                      alt={user.name} 
-                    />
+                    <AvatarImage src={user.imageUrl} alt={user.name} />
                     <AvatarFallback className="bg-blue-100 text-blue-800 font-medium">
                       {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -136,7 +135,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile">Profile</Link>
+                    <Link href="/caregiver/dashboard">Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/settings">Settings</Link>
@@ -144,12 +143,8 @@ export function Header({ variant = "default" }: HeaderProps) {
                   <DropdownMenuItem asChild>
                     <Link href="/employer/dashboard">Dashboard</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-red-600 focus:text-red-700 focus:bg-red-50"
-                   
-                  >
+                  <DropdownMenuItem className="text-red-600 focus:text-red-700 focus:bg-red-50">
                     <Link href="/api/auth/signout">Logout</Link>
-                    
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -171,7 +166,8 @@ export function Header({ variant = "default" }: HeaderProps) {
                   <Button
                     className={cn(
                       "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105",
-                      pathname === "/signup" && "from-blue-700 to-blue-800 shadow-xl scale-105"
+                      pathname === "/signup" &&
+                        "from-blue-700 to-blue-800 shadow-xl scale-105"
                     )}
                     onClick={handleLogin}
                   >
@@ -187,7 +183,11 @@ export function Header({ variant = "default" }: HeaderProps) {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
 
@@ -201,7 +201,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   href={link.href}
                   className={cn(
                     "text-slate-700 hover:text-blue-600 font-medium py-2 px-3 rounded-lg transition-colors",
-                    isActiveLink(link.href) && "text-blue-600  shadow-sm",
+                    isActiveLink(link.href) && "text-blue-600  shadow-sm"
                   )}
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -211,7 +211,7 @@ export function Header({ variant = "default" }: HeaderProps) {
               <div className="flex flex-col space-y-2 pt-4 border-t border-slate-200">
                 {isAuthenticated ? (
                   <>
-                    <Link href="/profile">
+                    <Link href="/caregiver/dashboard">
                       <Button
                         variant="ghost"
                         className="w-full justify-start"
@@ -256,8 +256,8 @@ export function Header({ variant = "default" }: HeaderProps) {
                           pathname === "/signin" && "text-blue-600 bg-blue-50"
                         )}
                         onClick={() => {
-                          setMobileMenuOpen(false)
-                          handleLogin()
+                          setMobileMenuOpen(false);
+                          handleLogin();
                         }}
                       >
                         Sign In
@@ -270,8 +270,8 @@ export function Header({ variant = "default" }: HeaderProps) {
                           pathname === "/signup" && "from-blue-700 to-blue-800"
                         )}
                         onClick={() => {
-                          setMobileMenuOpen(false)
-                          handleLogin()
+                          setMobileMenuOpen(false);
+                          handleLogin();
                         }}
                       >
                         Get Started
@@ -285,5 +285,5 @@ export function Header({ variant = "default" }: HeaderProps) {
         )}
       </div>
     </header>
-  )
+  );
 }
