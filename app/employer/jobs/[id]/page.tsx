@@ -62,19 +62,20 @@ interface JobDetails {
   } | null;
 }
 
+// FIGA brand-aligned status colors
 const statusColors = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  APPROVED: "bg-green-100 text-green-800",
-  REJECTED: "bg-red-100 text-red-800",
-  COMPLETED: "bg-purple-100 text-purple-800",
-  CANCELLED: "bg-gray-100 text-gray-800",
+  PENDING: "bg-amber-50 text-amber-700 border border-amber-200",
+  APPROVED: "bg-blue-50 text-blue-700 border border-blue-200",
+  REJECTED: "bg-rose-50 text-rose-700 border border-rose-200",
+  COMPLETED: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  CANCELLED: "bg-gray-50 text-gray-700 border border-gray-200",
 };
 
 const urgencyColors = {
-  LOW: "bg-blue-100 text-blue-800",
-  MEDIUM: "bg-orange-100 text-orange-800",
-  HIGH: "bg-red-100 text-red-800",
-  null: "bg-gray-100 text-gray-800",
+  LOW: "bg-blue-50 text-blue-700 border border-blue-200",
+  MEDIUM: "bg-orange-50 text-orange-700 border border-orange-200",
+  HIGH: "bg-red-50 text-red-700 border border-red-200",
+  null: "bg-gray-50 text-gray-700 border border-gray-200",
 };
 
 export default function JobDetailsPage() {
@@ -156,69 +157,102 @@ export default function JobDetailsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <Button
-          variant="outline"
-          onClick={() => router.push("/employer/dashboard")}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to Dashboard
-        </Button>
+      {/* Hero header */}
+      <div className="relative overflow-hidden rounded-2xl border bg-white shadow-sm mb-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-400 opacity-10" />
+        <div className="relative p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 flex-wrap mb-1">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
+                  {job.title}
+                </h1>
+                <Badge className={statusColors[job.status]}>
+                  {job.status.charAt(0) + job.status.slice(1).toLowerCase()}
+                </Badge>
+                {job.job_urgency && (
+                  <Badge className={urgencyColors[job.job_urgency]}>
+                    Urgent: {job.job_urgency}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                <span className="inline-flex items-center gap-2">
+                  <MapPinIcon className="h-4 w-4 text-blue-600" />{" "}
+                  {job.location}
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-purple-600" /> Posted{" "}
+                  {new Date(job.posted_at).toLocaleDateString()}
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <ClockIcon className="h-4 w-4 text-green-600" />{" "}
+                  {job.shift_type}
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/employer/dashboard")}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeftIcon className="h-4 w-4" /> Back
+              </Button>
+              {job.status === "PENDING" && (
+                <Link href={`/employer/jobs/${job.id}/edit`}>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <EditIcon className="h-4 w-4 mr-2" /> Edit Job
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Job Details */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader className="pb-4">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-2xl">{job.title}</CardTitle>
-                <div className="flex gap-2">
-                  <Badge className={statusColors[job.status]}>
-                    {job.status.charAt(0) + job.status.slice(1).toLowerCase()}
-                  </Badge>
-                  {job.job_urgency && (
-                    <Badge className={urgencyColors[job.job_urgency]}>
-                      {job.job_urgency}
-                    </Badge>
-                  )}
-                </div>
-              </div>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Overview</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <MapPinIcon className="h-5 w-5 text-gray-500" />
+                <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                  <MapPinIcon className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Location</p>
-                    <p className="font-medium">{job.location}</p>
+                    <p className="text-sm text-slate-600">Location</p>
+                    <p className="font-medium text-slate-900">{job.location}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <CalendarIcon className="h-5 w-5 text-gray-500" />
+                <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                  <CalendarIcon className="h-5 w-5 text-purple-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Posted On</p>
-                    <p className="font-medium">
+                    <p className="text-sm text-slate-600">Posted On</p>
+                    <p className="font-medium text-slate-900">
                       {new Date(job.posted_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <ClockIcon className="h-5 w-5 text-gray-500" />
+                <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                  <ClockIcon className="h-5 w-5 text-green-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Shift Type</p>
-                    <p className="font-medium">{job.shift_type}</p>
+                    <p className="text-sm text-slate-600">Shift Type</p>
+                    <p className="font-medium text-slate-900">
+                      {job.shift_type}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <CalendarIcon className="h-5 w-5 text-gray-500" />
+                <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                  <CalendarIcon className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Schedule</p>
-                    <p className="font-medium">
+                    <p className="text-sm text-slate-600">Schedule</p>
+                    <p className="font-medium text-slate-900">
                       {new Date(job.schedule_start).toLocaleString()} -{" "}
                       {new Date(job.schedule_end).toLocaleString()}
                     </p>
@@ -226,13 +260,13 @@ export default function JobDetailsPage() {
                 </div>
 
                 {job.deadline && (
-                  <div className="flex items-center gap-3">
-                    <ClockIcon className="h-5 w-5 text-gray-500" />
+                  <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                    <ClockIcon className="h-5 w-5 text-amber-600" />
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-slate-600">
                         Application Deadline
                       </p>
-                      <p className="font-medium">
+                      <p className="font-medium text-slate-900">
                         {new Date(job.deadline).toLocaleDateString()}
                       </p>
                     </div>
@@ -242,7 +276,7 @@ export default function JobDetailsPage() {
 
               <div>
                 <h3 className="font-medium mb-2">Job Description</h3>
-                <p className="text-gray-700 whitespace-pre-line">
+                <p className="text-slate-700 whitespace-pre-line">
                   {job.description}
                 </p>
               </div>
@@ -250,7 +284,7 @@ export default function JobDetailsPage() {
               {job.job_requirements && (
                 <div>
                   <h3 className="font-medium mb-2">Requirements</h3>
-                  <p className="text-gray-700 whitespace-pre-line">
+                  <p className="text-slate-700 whitespace-pre-line">
                     {job.job_requirements}
                   </p>
                 </div>
@@ -258,19 +292,21 @@ export default function JobDetailsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {job.gender_preference && (
-                  <div className="flex items-center gap-3">
-                    <UserIcon className="h-5 w-5 text-gray-500" />
+                  <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                    <UserIcon className="h-5 w-5 text-rose-600" />
                     <div>
-                      <p className="text-sm text-gray-500">Gender Preference</p>
+                      <p className="text-sm text-slate-600">
+                        Gender Preference
+                      </p>
                       <p className="font-medium">{job.gender_preference}</p>
                     </div>
                   </div>
                 )}
 
-                <div className="flex items-center gap-3">
-                  <CarIcon className="h-5 w-5 text-gray-500" />
+                <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                  <CarIcon className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Driving Required</p>
+                    <p className="text-sm text-slate-600">Driving Required</p>
                     <p className="font-medium">
                       {job.driving_license_required ? "Yes" : "No"}
                     </p>
@@ -278,10 +314,10 @@ export default function JobDetailsPage() {
                 </div>
 
                 {job.language_level_requirement && (
-                  <div className="flex items-center gap-3">
-                    <LanguagesIcon className="h-5 w-5 text-gray-500" />
+                  <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                    <LanguagesIcon className="h-5 w-5 text-purple-600" />
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-slate-600">
                         Language Requirement
                       </p>
                       <p className="font-medium">
@@ -304,7 +340,7 @@ export default function JobDetailsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center">
                     <span className="font-medium">
                       {job.assigned_caregiver.fullname
                         .split(" ")
@@ -316,8 +352,8 @@ export default function JobDetailsPage() {
                     <h4 className="font-medium">
                       {job.assigned_caregiver.fullname}
                     </h4>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <StarIcon className="h-4 w-4 fill-yellow-400 mr-1" />
+                    <div className="flex items-center text-sm text-blue-700">
+                      <StarIcon className="h-4 w-4 fill-current mr-1" />
                       {job.assigned_caregiver.rating.toFixed(1)}
                     </div>
                   </div>
@@ -346,7 +382,7 @@ export default function JobDetailsPage() {
                 <>
                   <Button
                     onClick={() => handleStatusChange("COMPLETED")}
-                    className="w-full"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <CheckCircleIcon className="h-4 w-4 mr-2" />
                     Mark as Completed
@@ -374,9 +410,8 @@ export default function JobDetailsPage() {
 
               {job.status === "PENDING" && (
                 <Link href={`/employer/jobs/${job.id}/edit`}>
-                  <Button className="w-full">
-                    <EditIcon className="h-4 w-4 mr-2" />
-                    Edit Job
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    <EditIcon className="h-4 w-4 mr-2" /> Edit Job
                   </Button>
                 </Link>
               )}

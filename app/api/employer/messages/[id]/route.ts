@@ -41,3 +41,18 @@ export async function PATCH(_req: Request, ctx: { params: { id: string } }) {
   }
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(_req: Request, ctx: { params: { id: string } }) {
+  const session = await getServerSession(authOptions);
+  const guard = employerGuard(session);
+  if (guard) return guard;
+
+  const id = Number(ctx.params.id);
+  const deleted = await prisma.message.deleteMany({
+    where: { id, to_user_id: (session!.user as any).id },
+  });
+  if (deleted.count === 0) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
+}
