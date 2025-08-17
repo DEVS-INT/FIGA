@@ -34,6 +34,7 @@ import {
   CheckCircleIcon,
   MessageSquareIcon,
   Loader2,
+  ClockIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -98,17 +99,17 @@ const getStatusIcon = (status: JobStatus) => {
 const getStatusColor = (status: JobStatus) => {
   switch (status) {
     case "APPROVED":
-      return "bg-green-100 text-green-800 border-green-200";
+      return "bg-blue-50 text-blue-700 border-blue-200";
     case "PENDING":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      return "bg-amber-50 text-amber-700 border-amber-200";
     case "REJECTED":
-      return "bg-red-100 text-red-800 border-red-200";
+      return "bg-rose-50 text-rose-700 border-rose-200";
     case "COMPLETED":
-      return "bg-purple-100 text-purple-800 border-purple-200";
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
     case "CANCELLED":
-      return "bg-gray-100 text-gray-800 border-gray-200";
+      return "bg-gray-50 text-gray-700 border-gray-200";
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
+      return "bg-gray-50 text-gray-700 border-gray-200";
   }
 };
 
@@ -218,7 +219,7 @@ export default function EmployerDashboardPage() {
           newStatus = "PENDING";
       }
 
-      const response = await fetch(`/api/jobs/${jobId}`, {
+      const response = await fetch(`/api/job/${jobId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -253,31 +254,96 @@ export default function EmployerDashboardPage() {
     <Section padding="sm">
       <Container size="xl">
         <div className="space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Job Dashboard
-              </h1>
-              <p className="text-gray-600">Manage all your job postings</p>
-            </div>
-            <div className="flex gap-4">
-              <Link href="/employer/messages">
-                <Button variant="outline" className="relative">
-                  <MessageSquareIcon className="w-5 h-5 mr-2" />
-                  Messages
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold rounded-full h-5 min-w-[1.25rem] px-1.5 flex items-center justify-center shadow-sm">
-                      {unreadCount > 99 ? "99+" : unreadCount}
-                    </span>
-                  )}
+          {/* Header - FIGA blue gradient */}
+          <div className="relative overflow-hidden rounded-2xl border bg-white shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-400 opacity-10" />
+            <div className="relative p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                  Employer Dashboard
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Manage your postings, track progress, and connect with
+                  caregivers.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Link href="/employer/messages">
+                  <Button variant="outline" className="relative">
+                    <MessageSquareIcon className="w-5 h-5 mr-2" />
+                    Messages
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold rounded-full h-5 min-w-[1.25rem] px-1.5 flex items-center justify-center shadow-sm">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+                <Button
+                  onClick={() => router.push("/employer/post-job")}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Post New Job
                 </Button>
-              </Link>
-              <Button onClick={() => router.push("/employer/post-job")}>
-                <PlusIcon className="h-5 w-5 mr-2" />
-                Post New Job
-              </Button>
+              </div>
             </div>
+          </div>
+
+          {/* Top stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border-blue-100">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total Jobs</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {jobs.length}
+                  </p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <BriefcaseIcon className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-blue-100">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Active</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {jobs.filter((j) => j.status === "APPROVED").length}
+                  </p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <CheckCircleIcon className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-blue-100">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Pending Review</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {jobs.filter((j) => j.status === "PENDING").length}
+                  </p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <ClockIcon className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-blue-100">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {jobs.filter((j) => j.status === "COMPLETED").length}
+                  </p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <CheckCircleIcon className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Jobs Section */}
@@ -331,11 +397,25 @@ export default function EmployerDashboardPage() {
                 className="w-full"
               >
                 <TabsList className="grid w-full grid-cols-6">
-                  <TabsTrigger value="all">All ({jobs.length})</TabsTrigger>
+                  <TabsTrigger
+                    value="all"
+                    className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+                  >
+                    All
+                    <span className="ml-2 rounded-full bg-blue-100 text-blue-700 text-xs px-2 py-0.5">
+                      {jobs.length}
+                    </span>
+                  </TabsTrigger>
                   {statusOptions.map((status) => (
-                    <TabsTrigger key={status} value={status}>
-                      {status.charAt(0) + status.slice(1).toLowerCase()} (
-                      {getJobCountByStatus(status)})
+                    <TabsTrigger
+                      key={status}
+                      value={status}
+                      className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+                    >
+                      {status.charAt(0) + status.slice(1).toLowerCase()}
+                      <span className="ml-2 rounded-full bg-blue-100 text-blue-700 text-xs px-2 py-0.5">
+                        {getJobCountByStatus(status)}
+                      </span>
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -362,7 +442,19 @@ export default function EmployerDashboardPage() {
                       {filteredJobs.map((job) => (
                         <Card
                           key={job.id}
-                          className="hover:shadow-md transition-shadow"
+                          className="hover:shadow-md transition-shadow border-l-4"
+                          style={{
+                            borderLeftColor:
+                              job.status === "APPROVED"
+                                ? "#2563eb" /* blue-600 */
+                                : job.status === "PENDING"
+                                ? "#f59e0b" /* amber-500 */
+                                : job.status === "REJECTED"
+                                ? "#e11d48" /* rose-600 */
+                                : job.status === "COMPLETED"
+                                ? "#059669" /* emerald-600 */
+                                : "#6b7280" /* gray-500 */,
+                          }}
                         >
                           <CardContent className="p-6">
                             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

@@ -4,7 +4,6 @@ import { Container, Section } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -15,7 +14,6 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -32,7 +30,6 @@ import {
   Clock,
   User,
   CheckCircle,
-  AlertTriangle,
   Loader2,
   ArrowLeft,
 } from "lucide-react";
@@ -48,7 +45,14 @@ import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 
-// Reuse the same schema from the post job form
+// Minimal required mark for labels
+const RequiredMark = () => (
+  <span className="ml-1 text-red-600" aria-hidden="true">
+    *
+  </span>
+);
+
+// Schema aligned with post-job
 const jobFormSchema = z.object({
   title: z.string().min(5, {
     message: "Job title must be at least 5 characters.",
@@ -102,21 +106,15 @@ export default function EditJobPage() {
     },
   });
 
-  // Fetch job data when component mounts
+  // Load job
   useEffect(() => {
     const fetchJob = async () => {
       try {
         setLoading(true);
         const response = await fetch(`/api/job/${jobId}`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch job");
-        }
-
+        if (!response.ok) throw new Error("Failed to fetch job");
         const data = await response.json();
-
-        // Convert ISO dates to datetime-local format
-        const jobData = {
+        const jobData: Partial<JobFormValues> = {
           ...data,
           schedule_start: data.schedule_start
             ? new Date(data.schedule_start).toISOString().slice(0, 16)
@@ -128,8 +126,7 @@ export default function EditJobPage() {
             ? new Date(data.deadline).toISOString().slice(0, 16)
             : "",
         };
-
-        form.reset(jobData);
+        form.reset(jobData as JobFormValues);
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Error loading job"
@@ -139,15 +136,26 @@ export default function EditJobPage() {
         setLoading(false);
       }
     };
-
-    if (jobId) {
-      fetchJob();
-    }
+    if (jobId) fetchJob();
   }, [jobId, form, router]);
 
   const onSubmit = async (data: JobFormValues) => {
     try {
-      // Convert datetime-local format to ISO string
+      // Client-side schedule validation
+      const s = new Date(data.schedule_start);
+      const e = new Date(data.schedule_end);
+      if (
+        s.toString() !== "Invalid Date" &&
+        e.toString() !== "Invalid Date" &&
+        e <= s
+      ) {
+        form.setError("schedule_end", {
+          type: "manual",
+          message: "End must be after start",
+        });
+        return;
+      }
+
       const payload = {
         ...data,
         schedule_start: new Date(data.schedule_start).toISOString(),
@@ -157,14 +165,10 @@ export default function EditJobPage() {
 
       const response = await fetch(`/api/job/${jobId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!response.ok) {
-        // Try to parse JSON error, fallback to text to avoid JSON parse errors
         let message = "Failed to update job";
         try {
           const errorData = await response.json();
@@ -203,18 +207,27 @@ export default function EditJobPage() {
     <Section padding="sm">
       <Container size="xl">
         <div className="space-y-8">
-          {/* Header with back button */}
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                Edit Job Posting
-              </h1>
-              <p className="text-slate-600">
-                Update your caregiver job details
-              </p>
+          {/* Hero header */}
+          <div className="relative overflow-hidden rounded-2xl border bg-white shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-400 opacity-10" />
+            <div className="relative p-6 md:p-8 flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => router.back()}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+                    Edit Job Posting
+                  </h1>
+                  <p className="text-slate-600 mt-1">
+                    Update your caregiver job details
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -243,13 +256,7 @@ export default function EditJobPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Job Title{" "}
-                            <Badge
-                              variant="destructive"
-                              className="ml-1 text-xs"
-                            >
-                              Required
-                            </Badge>
+                            Job Title <RequiredMark />
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -261,20 +268,13 @@ export default function EditJobPage() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="location"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Location (City, State){" "}
-                            <Badge
-                              variant="destructive"
-                              className="ml-1 text-xs"
-                            >
-                              Required
-                            </Badge>
+                            Location (City, State) <RequiredMark />
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -286,20 +286,13 @@ export default function EditJobPage() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="description"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Job Description{" "}
-                            <Badge
-                              variant="destructive"
-                              className="ml-1 text-xs"
-                            >
-                              Required
-                            </Badge>
+                            Job Description <RequiredMark />
                           </FormLabel>
                           <FormControl>
                             <Textarea
@@ -327,13 +320,7 @@ export default function EditJobPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Start Date & Time{" "}
-                              <Badge
-                                variant="destructive"
-                                className="ml-1 text-xs"
-                              >
-                                Required
-                              </Badge>
+                              Start Date & Time <RequiredMark />
                             </FormLabel>
                             <FormControl>
                               <Input type="datetime-local" {...field} />
@@ -348,13 +335,7 @@ export default function EditJobPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              End Date & Time{" "}
-                              <Badge
-                                variant="destructive"
-                                className="ml-1 text-xs"
-                              >
-                                Required
-                              </Badge>
+                              End Date & Time <RequiredMark />
                             </FormLabel>
                             <FormControl>
                               <Input type="datetime-local" {...field} />
@@ -389,13 +370,7 @@ export default function EditJobPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Shift Type{" "}
-                            <Badge
-                              variant="destructive"
-                              className="ml-1 text-xs"
-                            >
-                              Required
-                            </Badge>
+                            Shift Type <RequiredMark />
                           </FormLabel>
                           <Select
                             onValueChange={field.onChange}
@@ -583,7 +558,7 @@ export default function EditJobPage() {
                     />
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Actions */}
                   <div className="flex justify-end gap-4 pt-6">
                     <Button
                       type="button"
@@ -596,6 +571,7 @@ export default function EditJobPage() {
                     <Button
                       type="submit"
                       disabled={form.formState.isSubmitting}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       {form.formState.isSubmitting ? (
                         <>
