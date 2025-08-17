@@ -59,13 +59,31 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).role = (token as any).role as string | undefined; 
             }
             return session;
-        }
+        },
+        async redirect({ url, baseUrl }) {
+            try {
+                const target = new URL(url, baseUrl);
+                // If coming from the default sign-in, route by role when landing at generic /dashboard
+                if (
+                  target.pathname === "/dashboard" ||
+                  target.pathname === "/" ||
+                  target.pathname === "/signin"
+                ) {
+                    // We can't read the token here, but NextAuth will call redirect after signIn with the provided callbackUrl.
+                    // So, if no explicit app path is provided, keep default baseUrl.
+                    return baseUrl;
+                }
+                return target.href;
+            } catch {
+                return baseUrl;
+            }
+        },
     },
     session: {
         strategy: "jwt",
     },
     pages: {
         signIn: "/signin",
-    signOut: "/signout",
+        signOut: "/signout",
     }
 };
