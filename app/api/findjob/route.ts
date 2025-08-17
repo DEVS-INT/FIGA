@@ -26,13 +26,9 @@ export async function GET(request: Request) {
     const take = searchParams.get('take');
     const skip = searchParams.get('skip');
 
-    const where: any = {};
-    // Only list jobs that are not cancelled/completed by default
-    if (!status) {
-      where.NOT = { status: { in: ['CANCELLED', 'COMPLETED'] } };
-    } else {
-      where.status = status;
-    }
+  const where: any = {};
+  // Show only APPROVED jobs by default on the public Find Jobs page
+  where.status = status ?? 'APPROVED';
 
   const jobs = await prisma.job.findMany({
       where,
@@ -45,13 +41,19 @@ export async function GET(request: Request) {
       },
     });
 
-    const data = jobs.map((job) => {
+  const data = jobs.map((job) => {
       const isOpen = job.status !== 'CANCELLED' && job.status !== 'COMPLETED';
       const days = Math.max(1, Math.ceil((job.schedule_end.getTime() - job.schedule_start.getTime()) / (1000 * 60 * 60 * 24)));
       const durationLabel = `${days >= 5 ? 'Full-time' : 'Part-time'}, ${days} ${days === 1 ? 'day' : 'days'}`;
       const requirements = job.job_requirements
         ? job.job_requirements.split(',').map((s) => s.trim()).filter(Boolean)
         : [];
+
+      // Build shift types and add 'Ongoing' when there is no deadline
+      const shiftTypes = mapShiftTypes(job.shift_type);
+      if (!job.deadline) {
+        shiftTypes.push('Ongoing');
+      }
 
       return {
         id: job.id,
@@ -61,7 +63,7 @@ export async function GET(request: Request) {
         isOpen,
         startDate: job.schedule_start.toISOString(),
         endDate: job.schedule_end.toISOString(),
-        shiftTypes: mapShiftTypes(job.shift_type),
+        shiftTypes,
         duration: durationLabel,
         genderPreference: job.gender_preference ?? 'No preference',
         drivingRequired: !!job.driving_license_required,

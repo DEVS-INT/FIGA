@@ -88,6 +88,8 @@ export function Header({ variant = "default" }: HeaderProps) {
   const getDashboardPath = () => {
     if (session?.user?.role === "EMPLOYER") return "/employer/dashboard";
     if (session?.user?.role === "EMPLOYEE") return "/caregiver/dashboard";
+    if (session?.user?.role === "STAFF" || session?.user?.role === "ADMIN")
+      return "/staff";
     return "/dashboard";
   };
 

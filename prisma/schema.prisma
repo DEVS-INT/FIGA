@@ -23,16 +23,19 @@ enum Role {
 }
 
 model User {
-  id          String        @id @default(cuid())
-  fullname    String
-  email       String        @unique
-  password    String
-  role        Role
-  created_at  DateTime      @default(now())
-  updated_at  DateTime      @updatedAt
-  Job         Job[]
-  Application Application[]
-  Portfolio   Portfolio[]
+  id                            String               @id @default(cuid())
+  fullname                      String
+  email                         String               @unique
+  password                      String
+  role                          Role
+  created_at                    DateTime             @default(now())
+  updated_at                    DateTime             @updatedAt
+  Job                           Job[]
+  Application                   Application[]
+  Portfolio                     Portfolio[]
+  messagesSent                  Message[]            @relation("MessagesFrom")
+  messagesReceived              Message[]            @relation("MessagesTo")
+  forwardedCandidatesAsEmployer ForwardedCandidate[] @relation("ForwardedEmployer")
 }
 
 model Job {
@@ -58,8 +61,10 @@ model Job {
   job_urgency                JobUrgency?
 
   // Relations
-  employer    User          @relation(fields: [employer_id], references: [id])
-  Application Application[]
+  employer            User                 @relation(fields: [employer_id], references: [id])
+  Application         Application[]
+  messages            Message[]
+  forwardedCandidates ForwardedCandidate[] @relation("ForwardedJob")
 }
 
 enum JobStatus {
@@ -90,9 +95,11 @@ model Application {
   is_reviewed  Boolean           @default(false)
 
   // Relations
-  job       Job       @relation(fields: [job_id], references: [id])
-  employee  User      @relation(fields: [employee_id], references: [id])
-  portfolio Portfolio @relation(fields: [portfolio_id], references: [id])
+  job              Job                  @relation(fields: [job_id], references: [id])
+  employee         User                 @relation(fields: [employee_id], references: [id])
+  portfolio        Portfolio            @relation(fields: [portfolio_id], references: [id])
+  messages         Message[]
+  forwardedEntries ForwardedCandidate[] @relation("ForwardedApplication")
 }
 
 enum ApplicationStatus {
@@ -128,4 +135,38 @@ model Portfolio {
   // Relations
   user        User          @relation(fields: [user_id], references: [id])
   Application Application[]
+}
+
+model Message {
+  id             Int       @id @default(autoincrement())
+  to_user_id     String
+  from_user_id   String
+  subject        String?
+  body           String
+  created_at     DateTime  @default(now())
+  read_at        DateTime?
+  job_id         Int?
+  application_id Int?
+
+  // Relations
+  to_user     User         @relation("MessagesTo", fields: [to_user_id], references: [id])
+  from_user   User         @relation("MessagesFrom", fields: [from_user_id], references: [id])
+  job         Job?         @relation(fields: [job_id], references: [id])
+  application Application? @relation(fields: [application_id], references: [id])
+}
+
+// Tracks which candidates (applications) were forwarded by staff to a specific employer for a job
+model ForwardedCandidate {
+  id             Int      @id @default(autoincrement())
+  job_id         Int
+  employer_id    String
+  application_id Int
+  created_at     DateTime @default(now())
+
+  // Relations
+  job         Job         @relation("ForwardedJob", fields: [job_id], references: [id])
+  employer    User        @relation("ForwardedEmployer", fields: [employer_id], references: [id])
+  application Application @relation("ForwardedApplication", fields: [application_id], references: [id])
+
+  @@unique([job_id, application_id])
 }
