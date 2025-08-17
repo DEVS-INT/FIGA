@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 
 interface HeaderProps {
   variant?: "default" | "employer" | "caregiver";
@@ -80,8 +80,8 @@ export function Header({ variant = "default" }: HeaderProps) {
   };
 
   const handleLogout = () => {
-    signOut({ callbackUrl: "/" });
     setMobileMenuOpen(false);
+    router.push("/signout");
   };
 
   // Get dashboard path based on role

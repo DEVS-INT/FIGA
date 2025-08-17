@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FigaLogo } from "@/components/figa-logo";
 import { Menu, X } from "lucide-react";
@@ -24,6 +24,7 @@ interface HeaderProps {
 export function Header({ variant = "default" }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Temporary authentication state - replace with your actual auth context
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -79,6 +80,7 @@ export function Header({ variant = "default" }: HeaderProps) {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setMobileMenuOpen(false);
+    router.push("/signout");
   };
 
   return (
@@ -143,8 +145,11 @@ export function Header({ variant = "default" }: HeaderProps) {
                   <DropdownMenuItem asChild>
                     <Link href="/employer/dashboard">Dashboard</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-600 focus:text-red-700 focus:bg-red-50">
-                    <Link href="/api/auth/signout">Logout</Link>
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                    onClick={handleLogout}
+                  >
+                    Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
