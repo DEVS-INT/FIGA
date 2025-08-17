@@ -49,10 +49,33 @@ export default function Applicants() {
   const [reqOpen, setReqOpen] = useState(false);
   const [reqLoading, setReqLoading] = useState(false);
   const [reqJob, setReqJob] = useState<any | null>(null);
-  const [jobStatus, setJobStatus] = useState<string>("ALL");
+  // Only show approved jobs (employees apply only to approved jobs)
+  const [jobStatus] = useState<string>("APPROVED");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [shift, setShift] = useState<string>("ALL");
   const [selected, setSelected] = useState<Record<number, boolean>>({}); // applicationId -> selected
+  // Per-table (per job) filters
+  const [groupFilters, setGroupFilters] = useState<
+    Record<
+      number,
+      {
+        q: string;
+        verified: "ALL" | "YES" | "NO";
+        status: "ALL" | "PENDING" | "APPROVED" | "REJECTED";
+        from: string;
+        to: string;
+      }
+    >
+  >({});
+
+  const getGroupFilter = (jobId: number) =>
+    groupFilters[jobId] || {
+      q: "",
+      verified: "ALL" as const,
+      status: "ALL" as const,
+      from: "",
+      to: "",
+    };
 
   useEffect(() => {
     const load = async () => {
@@ -109,7 +132,8 @@ export default function Applicants() {
 
   // Apply client-side filters
   const filtered = rows.filter((r: any) => {
-    if (jobStatus !== "ALL" && r.jobStatus !== jobStatus) return false;
+    // Enforce approved jobs only
+    if (r.jobStatus !== "APPROVED") return false;
     if (verifiedOnly && !r.portfolio?.verified) return false;
     if (
       shift !== "ALL" &&
@@ -154,19 +178,7 @@ export default function Applicants() {
             onChange={(e) => setQ(e.target.value)}
             className="md:max-w-xs"
           />
-          <Select value={jobStatus} onValueChange={setJobStatus}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Job Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="APPROVED">Approved</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Jobs shown here are approved only */}
           <Select value={shift} onValueChange={setShift}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Shift" />
@@ -363,46 +375,129 @@ export default function Applicants() {
         {groups.map((g: any) => (
           <Card key={g.jobId}>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    {g.title}
-                  </CardTitle>
-                  <div className="flex items-center text-muted-foreground text-sm mt-1">
-                    <MapPin className="h-3.5 w-3.5 mr-1" />
-                    {g.location}
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Briefcase className="h-4 w-4" />
+                      {g.title}
+                    </CardTitle>
+                    <div className="flex items-center text-muted-foreground text-sm mt-1">
+                      <MapPin className="h-3.5 w-3.5 mr-1" />
+                      {g.location}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{g.status}</Badge>
+                    {g.urgency && (
+                      <Badge variant="secondary">{g.urgency}</Badge>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          setReqOpen(true);
+                          setReqLoading(true);
+                          setReqJob(null);
+                          const res = await fetch(`/api/staff/jobs/${g.jobId}`);
+                          const json = await res.json().catch(() => ({}));
+                          if (!res.ok)
+                            throw new Error(json.error || "Failed to load job");
+                          setReqJob(json.job);
+                        } catch (e: any) {
+                          toast.error(e.message || "Failed to load job");
+                        } finally {
+                          setReqLoading(false);
+                        }
+                      }}
+                    >
+                      View Job
+                    </Button>
+                    <Button size="sm" onClick={() => sendToEmployer(g.jobId)}>
+                      <Send className="h-4 w-4 mr-1" />
+                      Send to Employer
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{g.status}</Badge>
-                  {g.urgency && <Badge variant="secondary">{g.urgency}</Badge>}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        setReqOpen(true);
-                        setReqLoading(true);
-                        setReqJob(null);
-                        const res = await fetch(`/api/staff/jobs/${g.jobId}`);
-                        const json = await res.json().catch(() => ({}));
-                        if (!res.ok)
-                          throw new Error(json.error || "Failed to load job");
-                        setReqJob(json.job);
-                      } catch (e: any) {
-                        toast.error(e.message || "Failed to load job");
-                      } finally {
-                        setReqLoading(false);
-                      }
-                    }}
+                {/* Per-table filters */}
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                  <Input
+                    placeholder="Filter applicants…"
+                    value={getGroupFilter(g.jobId).q}
+                    onChange={(e) =>
+                      setGroupFilters((prev) => ({
+                        ...prev,
+                        [g.jobId]: {
+                          ...getGroupFilter(g.jobId),
+                          q: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                  <Select
+                    value={getGroupFilter(g.jobId).verified}
+                    onValueChange={(v: any) =>
+                      setGroupFilters((prev) => ({
+                        ...prev,
+                        [g.jobId]: { ...getGroupFilter(g.jobId), verified: v },
+                      }))
+                    }
                   >
-                    View Job
-                  </Button>
-                  <Button size="sm" onClick={() => sendToEmployer(g.jobId)}>
-                    <Send className="h-4 w-4 mr-1" />
-                    Send to Employer
-                  </Button>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Verified" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All</SelectItem>
+                      <SelectItem value="YES">Verified</SelectItem>
+                      <SelectItem value="NO">Unverified</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={getGroupFilter(g.jobId).status}
+                    onValueChange={(v: any) =>
+                      setGroupFilters((prev) => ({
+                        ...prev,
+                        [g.jobId]: { ...getGroupFilter(g.jobId), status: v },
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="APPROVED">Approved</SelectItem>
+                      <SelectItem value="REJECTED">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="date"
+                    value={getGroupFilter(g.jobId).from}
+                    onChange={(e) =>
+                      setGroupFilters((prev) => ({
+                        ...prev,
+                        [g.jobId]: {
+                          ...getGroupFilter(g.jobId),
+                          from: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                  <Input
+                    type="date"
+                    value={getGroupFilter(g.jobId).to}
+                    onChange={(e) =>
+                      setGroupFilters((prev) => ({
+                        ...prev,
+                        [g.jobId]: {
+                          ...getGroupFilter(g.jobId),
+                          to: e.target.value,
+                        },
+                      }))
+                    }
+                  />
                 </div>
               </div>
             </CardHeader>
@@ -414,18 +509,98 @@ export default function Applicants() {
                       <TableHead className="w-10">
                         <Checkbox
                           checked={
-                            g.applicants.every(
-                              (a: any) => selected[a.applicationId]
-                            ) && g.applicants.length > 0
+                            g.applicants
+                              .filter((a: any) => {
+                                const gf = getGroupFilter(g.jobId);
+                                const q = gf.q?.trim().toLowerCase();
+                                if (
+                                  q &&
+                                  !(
+                                    `${a.employeeName}`
+                                      .toLowerCase()
+                                      .includes(q) ||
+                                    `${a.employeeEmail}`
+                                      .toLowerCase()
+                                      .includes(q)
+                                  )
+                                )
+                                  return false;
+                                if (
+                                  gf.verified !== "ALL" &&
+                                  (a.portfolio?.verified ? "YES" : "NO") !==
+                                    gf.verified
+                                )
+                                  return false;
+                                if (
+                                  gf.status !== "ALL" &&
+                                  a.status !== gf.status
+                                )
+                                  return false;
+                                if (gf.from) {
+                                  const from = new Date(gf.from).getTime();
+                                  const ap = a.appliedAt
+                                    ? new Date(a.appliedAt).getTime()
+                                    : 0;
+                                  if (!ap || ap < from) return false;
+                                }
+                                if (gf.to) {
+                                  const to = new Date(gf.to).getTime();
+                                  const ap = a.appliedAt
+                                    ? new Date(a.appliedAt).getTime()
+                                    : 0;
+                                  if (!ap || ap > to + 24 * 3600 * 1000 - 1)
+                                    return false;
+                                }
+                                return true;
+                              })
+                              .every((a: any) => selected[a.applicationId]) &&
+                            g.applicants.length > 0
                           }
                           onCheckedChange={(v: any) => {
+                            const gf = getGroupFilter(g.jobId);
                             const next = { ...selected };
                             g.applicants.forEach((a: any) => {
-                              next[a.applicationId] = !!v;
+                              // only toggle visible rows according to filters
+                              const q = gf.q?.trim().toLowerCase();
+                              let visible = true;
+                              if (
+                                q &&
+                                !(
+                                  `${a.employeeName}`
+                                    .toLowerCase()
+                                    .includes(q) ||
+                                  `${a.employeeEmail}`.toLowerCase().includes(q)
+                                )
+                              )
+                                visible = false;
+                              if (
+                                gf.verified !== "ALL" &&
+                                (a.portfolio?.verified ? "YES" : "NO") !==
+                                  gf.verified
+                              )
+                                visible = false;
+                              if (gf.status !== "ALL" && a.status !== gf.status)
+                                visible = false;
+                              if (gf.from) {
+                                const from = new Date(gf.from).getTime();
+                                const ap = a.appliedAt
+                                  ? new Date(a.appliedAt).getTime()
+                                  : 0;
+                                if (!ap || ap < from) visible = false;
+                              }
+                              if (gf.to) {
+                                const to = new Date(gf.to).getTime();
+                                const ap = a.appliedAt
+                                  ? new Date(a.appliedAt).getTime()
+                                  : 0;
+                                if (!ap || ap > to + 24 * 3600 * 1000 - 1)
+                                  visible = false;
+                              }
+                              if (visible) next[a.applicationId] = !!v;
                             });
                             setSelected(next);
                           }}
-                          aria-label="Select all"
+                          aria-label="Select all visible"
                         />
                       </TableHead>
                       <TableHead>Applicant</TableHead>
@@ -437,77 +612,115 @@ export default function Applicants() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {g.applicants.map((a: any) => (
-                      <TableRow key={a.applicationId}>
-                        <TableCell className="w-10">
-                          <Checkbox
-                            checked={!!selected[a.applicationId]}
-                            onCheckedChange={(v: any) =>
-                              setSelected((s) => ({
-                                ...s,
-                                [a.applicationId]: !!v,
-                              }))
-                            }
-                            aria-label={`Select ${a.employeeName}`}
-                          />
-                        </TableCell>
-                        <TableCell>{a.employeeName}</TableCell>
-                        <TableCell>{a.employeeEmail}</TableCell>
-                        <TableCell>
-                          {a.portfolio?.verified ? (
-                            <Badge>Yes</Badge>
-                          ) : (
-                            <Badge variant="secondary">No</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {a.appliedAt
-                            ? new Date(a.appliedAt).toLocaleString()
-                            : "—"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              a.status === "PENDING" ? "secondary" : "default"
-                            }
-                          >
-                            {a.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                setPortfolioOpen(true);
-                                setPortfolioLoading(true);
-                                setPortfolio(null);
-                                const res = await fetch(
-                                  `/api/staff/portfolios/by-user/${encodeURIComponent(
-                                    a.employeeId
-                                  )}`
-                                );
-                                const json = await res.json().catch(() => ({}));
-                                if (!res.ok)
-                                  throw new Error(
-                                    json.error || "Failed to load portfolio"
-                                  );
-                                setPortfolio(json.portfolio);
-                              } catch (e: any) {
-                                toast.error(
-                                  e.message || "Failed to load portfolio"
-                                );
-                              } finally {
-                                setPortfolioLoading(false);
+                    {g.applicants
+                      .filter((a: any) => {
+                        const gf = getGroupFilter(g.jobId);
+                        const q = gf.q?.trim().toLowerCase();
+                        if (
+                          q &&
+                          !(
+                            `${a.employeeName}`.toLowerCase().includes(q) ||
+                            `${a.employeeEmail}`.toLowerCase().includes(q)
+                          )
+                        )
+                          return false;
+                        if (
+                          gf.verified !== "ALL" &&
+                          (a.portfolio?.verified ? "YES" : "NO") !== gf.verified
+                        )
+                          return false;
+                        if (gf.status !== "ALL" && a.status !== gf.status)
+                          return false;
+                        if (gf.from) {
+                          const from = new Date(gf.from).getTime();
+                          const ap = a.appliedAt
+                            ? new Date(a.appliedAt).getTime()
+                            : 0;
+                          if (!ap || ap < from) return false;
+                        }
+                        if (gf.to) {
+                          const to = new Date(gf.to).getTime();
+                          const ap = a.appliedAt
+                            ? new Date(a.appliedAt).getTime()
+                            : 0;
+                          if (!ap || ap > to + 24 * 3600 * 1000 - 1)
+                            return false;
+                        }
+                        return true;
+                      })
+                      .map((a: any) => (
+                        <TableRow key={a.applicationId}>
+                          <TableCell className="w-10">
+                            <Checkbox
+                              checked={!!selected[a.applicationId]}
+                              onCheckedChange={(v: any) =>
+                                setSelected((s) => ({
+                                  ...s,
+                                  [a.applicationId]: !!v,
+                                }))
                               }
-                            }}
-                          >
-                            View Portfolio
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              aria-label={`Select ${a.employeeName}`}
+                            />
+                          </TableCell>
+                          <TableCell>{a.employeeName}</TableCell>
+                          <TableCell>{a.employeeEmail}</TableCell>
+                          <TableCell>
+                            {a.portfolio?.verified ? (
+                              <Badge>Yes</Badge>
+                            ) : (
+                              <Badge variant="secondary">No</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {a.appliedAt
+                              ? new Date(a.appliedAt).toLocaleString()
+                              : "—"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                a.status === "PENDING" ? "secondary" : "default"
+                              }
+                            >
+                              {a.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  setPortfolioOpen(true);
+                                  setPortfolioLoading(true);
+                                  setPortfolio(null);
+                                  const res = await fetch(
+                                    `/api/staff/portfolios/by-user/${encodeURIComponent(
+                                      a.employeeId
+                                    )}`
+                                  );
+                                  const json = await res
+                                    .json()
+                                    .catch(() => ({}));
+                                  if (!res.ok)
+                                    throw new Error(
+                                      json.error || "Failed to load portfolio"
+                                    );
+                                  setPortfolio(json.portfolio);
+                                } catch (e: any) {
+                                  toast.error(
+                                    e.message || "Failed to load portfolio"
+                                  );
+                                } finally {
+                                  setPortfolioLoading(false);
+                                }
+                              }}
+                            >
+                              View Portfolio
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               </div>
