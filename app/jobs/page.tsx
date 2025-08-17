@@ -138,6 +138,22 @@ export default function JobsPage() {
     JobCard[] | null
   >(null);
 
+  // Centralized close to ensure filters/results restore consistently
+  const closeApplyModal = React.useCallback(() => {
+    setApplyOpen(false);
+    if (filtersSnapshot) {
+      setSearchTerm(filtersSnapshot.searchTerm);
+      setLocationFilter(filtersSnapshot.locationFilter);
+      setShiftTypeFilter(filtersSnapshot.shiftTypeFilter);
+      setGenderPreferenceFilter(filtersSnapshot.genderPreferenceFilter);
+      setRequirementsFilter(filtersSnapshot.requirementsFilter);
+    }
+    setFilteredJobsSnapshot(null);
+    setFiltersSnapshot(null);
+    setSelectedJob(null);
+    setCoverLetter("");
+  }, [filtersSnapshot]);
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -301,21 +317,8 @@ export default function JobsPage() {
       <ApplyModal
         open={applyOpen}
         onOpenChange={(v) => {
+          if (!v) return closeApplyModal();
           setApplyOpen(v);
-          if (!v) {
-            // Restore filters if changed while modal was open
-            if (filtersSnapshot) {
-              setSearchTerm(filtersSnapshot.searchTerm);
-              setLocationFilter(filtersSnapshot.locationFilter);
-              setShiftTypeFilter(filtersSnapshot.shiftTypeFilter);
-              setGenderPreferenceFilter(filtersSnapshot.genderPreferenceFilter);
-              setRequirementsFilter(filtersSnapshot.requirementsFilter);
-            }
-            setFilteredJobsSnapshot(null);
-            setFiltersSnapshot(null);
-            setSelectedJob(null);
-            setCoverLetter("");
-          }
         }}
         job={selectedJob}
         note={coverLetter}
@@ -351,9 +354,8 @@ export default function JobsPage() {
                   : j
               )
             );
-            setApplyOpen(false);
-            setSelectedJob(null);
-            setCoverLetter("");
+            // Close and restore snapshot/filters to keep the list stable
+            closeApplyModal();
           } catch (e) {
             toast.error("Something went wrong");
           } finally {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { FigaLogo } from "@/components/figa-logo";
 import {
@@ -22,18 +23,51 @@ interface SidebarItem {
 }
 
 interface SidebarProps {
-  variant?: "employer" | "caregiver" | "admin";
+  variant?: "employer" | "caregiver" | "admin" | "staff";
   className?: string;
 }
 
 export function Sidebar({ variant = "employer", className }: SidebarProps) {
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  // Only fetch unread count for employer variant
+  useEffect(() => {
+    if (variant !== "employer") return;
+    let mounted = true;
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch("/api/employer/messages?unreadOnly=true", {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted)
+          setUnreadCount(Array.isArray(data?.data) ? data.data.length : 0);
+      } catch {
+        // ignore sidebar badge errors
+      }
+    };
+    fetchUnread();
+    const onFocus = () => fetchUnread();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchUnread();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      mounted = false;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [variant]);
 
   const getItems = (): SidebarItem[] => {
     switch (variant) {
       case "employer":
         return [
           { href: "/employer/dashboard", label: "Dashboard", icon: Home },
+          { href: "/employer/messages", label: "Messages", icon: FileText },
           { href: "/employer/post-job", label: "Post Job", icon: FileText },
           {
             href: "/employer/applications",
@@ -63,6 +97,16 @@ export function Sidebar({ variant = "employer", className }: SidebarProps) {
           { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
           { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
           { href: "/admin/settings", label: "Settings", icon: Settings },
+        ];
+      case "staff":
+        return [
+          { href: "/staff", label: "Dashboard", icon: Home },
+          { href: "/staff/jobs", label: "Manage Jobs", icon: Briefcase },
+          { href: "/staff/jobs/new", label: "Post Job", icon: FileText },
+          { href: "/staff/applicants", label: "Applicants", icon: Users },
+          { href: "/staff/portfolios", label: "Portfolios", icon: User },
+          { href: "/staff/employers/new", label: "New Employer", icon: User },
+          { href: "/staff/messages", label: "Messages", icon: FileText },
         ];
       default:
         return [];
@@ -113,6 +157,13 @@ export function Sidebar({ variant = "employer", className }: SidebarProps) {
                     )}
                   />
                   <span>{item.label}</span>
+                  {variant === "employer" &&
+                    item.href === "/employer/messages" &&
+                    unreadCount > 0 && (
+                      <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-600 text-white text-xs font-semibold h-5 min-w-[1.25rem] px-1.5 shadow-sm">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                 </Link>
               </li>
             );

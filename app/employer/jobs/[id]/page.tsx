@@ -20,11 +20,16 @@ import {
   StarIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 // Define JobStatus type manually
-type JobStatus = "PENDING" | "APPROVED" | "REJECTED" | "COMPLETED" | "CANCELLED";
+type JobStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "COMPLETED"
+  | "CANCELLED";
 
 interface JobDetails {
   id: number;
@@ -72,8 +77,10 @@ const urgencyColors = {
   null: "bg-gray-100 text-gray-800",
 };
 
-export default function JobDetailsPage({ params }: { params: { id: string } }) {
+export default function JobDetailsPage() {
   const router = useRouter();
+  const params = useParams() as { id?: string };
+  const id = params?.id;
   const [job, setJob] = useState<JobDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -82,7 +89,8 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
       try {
         setLoading(true);
         toast.loading("Loading job details...", { id: "fetch-job" });
-        const response = await fetch(`/api/job/${params.id}`);
+        if (!id) return;
+        const response = await fetch(`/api/job/${id}`);
         if (!response.ok) throw new Error("Failed to fetch job");
         const data = await response.json();
         setJob(data);
@@ -97,12 +105,13 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
     };
 
     fetchJob();
-  }, [params.id, router]);
+  }, [id, router]);
 
   const handleStatusChange = async (newStatus: JobStatus) => {
     try {
       toast.loading("Updating job status...", { id: "update-status" });
-      const response = await fetch(`/api/job/${params.id}`, {
+      if (!id) throw new Error("Missing job id");
+      const response = await fetch(`/api/job/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -135,7 +144,10 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-medium">Job not found</h2>
-        <Button onClick={() => router.push("/employer/dashboard")} className="mt-4">
+        <Button
+          onClick={() => router.push("/employer/dashboard")}
+          className="mt-4"
+        >
           Back to Dashboard
         </Button>
       </div>
@@ -217,7 +229,9 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                   <div className="flex items-center gap-3">
                     <ClockIcon className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">Application Deadline</p>
+                      <p className="text-sm text-gray-500">
+                        Application Deadline
+                      </p>
                       <p className="font-medium">
                         {new Date(job.deadline).toLocaleDateString()}
                       </p>
@@ -228,7 +242,9 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
 
               <div>
                 <h3 className="font-medium mb-2">Job Description</h3>
-                <p className="text-gray-700 whitespace-pre-line">{job.description}</p>
+                <p className="text-gray-700 whitespace-pre-line">
+                  {job.description}
+                </p>
               </div>
 
               {job.job_requirements && (
@@ -265,8 +281,12 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                   <div className="flex items-center gap-3">
                     <LanguagesIcon className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">Language Requirement</p>
-                      <p className="font-medium">{job.language_level_requirement}</p>
+                      <p className="text-sm text-gray-500">
+                        Language Requirement
+                      </p>
+                      <p className="font-medium">
+                        {job.language_level_requirement}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -293,7 +313,9 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                     </span>
                   </div>
                   <div>
-                    <h4 className="font-medium">{job.assigned_caregiver.fullname}</h4>
+                    <h4 className="font-medium">
+                      {job.assigned_caregiver.fullname}
+                    </h4>
                     <div className="flex items-center text-sm text-gray-600">
                       <StarIcon className="h-4 w-4 fill-yellow-400 mr-1" />
                       {job.assigned_caregiver.rating.toFixed(1)}

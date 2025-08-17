@@ -12,9 +12,10 @@ export function FooterGate() {
     "/signin",
     "/signup",
     "/signout",
-    /^\/caregiver\/dashboard(\/.*)?$/,
-    /^\/employer\/dashboard(\/.*)?$/,
-    /^\/caregiver\/portfolio(\/.*)?$/,
+    // Hide on all employee (caregiver) and employer private areas
+    /^\/caregiver(\/.*)?$/,
+    /^\/employer(\/.*)?$/,
+    /^\/staff(\/.*)?$/,
   ];
 
   const hide = hiddenRoutes.some((rule) =>
