@@ -20,6 +20,11 @@ import {
   Calendar,
   Clock,
   User as UserIcon,
+  Mail,
+  Phone,
+  GraduationCap,
+  BadgeCheck,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import {
@@ -37,6 +42,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StaffHeader } from "@/components/staff";
 
 export default function Applicants() {
@@ -209,9 +215,32 @@ export default function Applicants() {
       >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Employee Portfolio</DialogTitle>
+            <DialogTitle>
+              <div className="flex items-center gap-3">
+                <Avatar className="size-10 border border-blue-200">
+                  <AvatarImage
+                    src=""
+                    alt={portfolio?.user?.fullname || "Employee"}
+                  />
+                  <AvatarFallback className="bg-blue-50 text-blue-700 font-semibold">
+                    {(portfolio?.user?.fullname?.[0] || "E").toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="inline-flex items-center gap-2 text-base font-semibold">
+                    {portfolio?.user?.fullname || "Employee Portfolio"}
+                  </span>
+                  {portfolio?.user?.email && (
+                    <span className="inline-flex items-center gap-2 text-slate-600 text-sm">
+                      <Mail className="h-4 w-4" /> {portfolio.user.email}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </DialogTitle>
             <DialogDescription>
-              Review candidate details before forwarding.
+              {!portfolio?.user?.email &&
+                "Review candidate details before forwarding."}
             </DialogDescription>
           </DialogHeader>
           {portfolioLoading ? (
@@ -220,52 +249,120 @@ export default function Applicants() {
             </div>
           ) : portfolio ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-lg font-semibold">
-                    {portfolio.user.fullname}
-                  </div>
-                  <div className="text-slate-600 text-sm">
-                    {portfolio.user.email}
+              {/* Top badges */}
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant="outline"
+                  className={
+                    portfolio.is_verified
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
+                  }
+                >
+                  {portfolio.is_verified ? (
+                    <span className="inline-flex items-center gap-1">
+                      <BadgeCheck className="h-4 w-4" /> Verified
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" /> Unverified
+                    </span>
+                  )}
+                </Badge>
+                {portfolio.sex && (
+                  <Badge variant="secondary">Sex: {portfolio.sex}</Badge>
+                )}
+                {typeof portfolio.age === "number" && (
+                  <Badge variant="secondary">Age: {portfolio.age}</Badge>
+                )}
+              </div>
+
+              {/* Info grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700">
+                <div className="space-y-1">
+                  <div className="text-slate-500">Phone</div>
+                  <div className="inline-flex items-center gap-2 font-medium">
+                    <Phone className="h-4 w-4 text-blue-600" />{" "}
+                    {portfolio.phone_no || "—"}
                   </div>
                 </div>
-                <Badge
-                  variant={portfolio.is_verified ? "default" : "secondary"}
-                >
-                  {portfolio.is_verified ? "Verified" : "Unverified"}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700">
-                <div>Phone: {portfolio.phone_no}</div>
-                <div>Sex: {portfolio.sex}</div>
-                <div>English: {portfolio.english_skill}</div>
-                <div>Comfortability: {portfolio.comfortability}</div>
-                {portfolio.state_where_experience_gained && (
-                  <div>
-                    Experience State: {portfolio.state_where_experience_gained}
+                <div className="space-y-1">
+                  <div className="text-slate-500">English Skill</div>
+                  <div className="font-medium">
+                    {portfolio.english_skill || "—"}
                   </div>
-                )}
+                </div>
+                <div className="space-y-1">
+                  <div className="text-slate-500">Comfortability</div>
+                  <div className="font-medium">
+                    {portfolio.comfortability || "—"}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-slate-500">Experience State</div>
+                  <div className="inline-flex items-center gap-2 font-medium">
+                    <MapPin className="h-4 w-4 text-green-600" />
+                    {portfolio.state_where_experience_gained || "—"}
+                  </div>
+                </div>
                 {portfolio.suitable_work_days && (
-                  <div>Work Days: {portfolio.suitable_work_days}</div>
+                  <div className="space-y-1">
+                    <div className="text-slate-500">Suitable Work Days</div>
+                    <div className="font-medium">
+                      {portfolio.suitable_work_days}
+                    </div>
+                  </div>
                 )}
                 {portfolio.suitable_work_shift && (
-                  <div>Work Shift: {portfolio.suitable_work_shift}</div>
+                  <div className="space-y-1">
+                    <div className="text-slate-500">Suitable Work Shift</div>
+                    <div className="font-medium">
+                      {portfolio.suitable_work_shift}
+                    </div>
+                  </div>
                 )}
               </div>
-              {portfolio.experience && (
-                <div>
-                  <div className="font-semibold mb-1">Experience</div>
-                  <p className="text-slate-700 whitespace-pre-wrap">
-                    {portfolio.experience}
-                  </p>
+
+              {/* Education */}
+              {(portfolio.university_college ||
+                portfolio.study_field ||
+                portfolio.degree) && (
+                <div className="rounded-md border p-3">
+                  <div className="font-medium flex items-center gap-2 mb-1">
+                    <GraduationCap className="h-4 w-4 text-blue-600" />{" "}
+                    Education
+                  </div>
+                  <div className="text-sm text-slate-700 space-y-1">
+                    {portfolio.university_college && (
+                      <div>School: {portfolio.university_college}</div>
+                    )}
+                    {portfolio.study_field && (
+                      <div>Field: {portfolio.study_field}</div>
+                    )}
+                    {portfolio.degree && <div>Degree: {portfolio.degree}</div>}
+                  </div>
                 </div>
               )}
-              {portfolio.certifications && (
-                <div>
-                  <div className="font-semibold mb-1">Certifications</div>
-                  <p className="text-slate-700 whitespace-pre-wrap">
-                    {portfolio.certifications}
-                  </p>
+
+              {/* Experience & Certifications */}
+              {(portfolio.experience || portfolio.certifications) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {portfolio.experience && (
+                    <div className="rounded-md border p-3">
+                      <div className="font-medium mb-1">Experience</div>
+                      <div className="text-sm text-slate-700 whitespace-pre-wrap">
+                        {portfolio.experience}
+                      </div>
+                    </div>
+                  )}
+                  {portfolio.certifications && (
+                    <div className="rounded-md border p-3">
+                      <div className="font-medium mb-1">Certifications</div>
+                      <div className="text-sm text-slate-700 whitespace-pre-wrap">
+                        {portfolio.certifications}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

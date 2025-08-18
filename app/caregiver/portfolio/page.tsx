@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,10 +10,18 @@ import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Container, Section } from "@/components/common";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertCircle,
   CheckCircle2,
@@ -26,6 +34,10 @@ import {
   Phone,
   Hash,
   Languages,
+  Loader2,
+  Image as ImageIcon,
+  UploadCloud,
+  X,
 } from "lucide-react";
 
 // Schema mirrored from Portfolio table in Prisma schema
@@ -76,6 +88,8 @@ export default function CaregiverPortfolioPage() {
   const [currentStep, setCurrentStep] = useState<StepKey>("basics");
   const [loadingPrefill, setLoadingPrefill] = useState(true);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const form = useForm<PortfolioFormData>({
     resolver: zodResolver(portfolioSchema),
@@ -144,6 +158,38 @@ export default function CaregiverPortfolioPage() {
       toast.error(e instanceof Error ? e.message : "Unexpected error");
     }
   };
+
+  // Keep preview in sync with typed URL
+  useEffect(() => {
+    const sub = form.watch((values, { name }) => {
+      if (name === "profile_image") {
+        if (values.profile_image && typeof values.profile_image === "string") {
+          setPreviewUrl(values.profile_image);
+        } else if (!selectedFileRef.current) {
+          setPreviewUrl(null);
+        }
+      }
+    });
+    return () => sub.unsubscribe();
+  }, [form]);
+
+  // Track selected file (not uploaded yet)
+  const selectedFileRef = useRef<File | null>(null);
+  const onPickFile = () => fileInputRef.current?.click();
+  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const f = e.target.files?.[0];
+    selectedFileRef.current = f || null;
+    if (f) {
+      const url = URL.createObjectURL(f);
+      setPreviewUrl(url);
+    }
+  };
+  useEffect(() => {
+    return () => {
+      if (previewUrl && selectedFileRef.current)
+        URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   if (status === "loading") return null;
   if (!session || session.user?.role !== "EMPLOYEE") {
@@ -233,223 +279,263 @@ export default function CaregiverPortfolioPage() {
     }
   }, [currentStep]);
 
+  // Minimal required mark reused across labels for consistency
+  const RequiredMark = () => (
+    <span className="ml-1 text-red-600" aria-hidden="true">
+      *
+    </span>
+  );
+
   return (
-    <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-6rem)] grid place-items-start md:place-items-center">
-      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Left: Stepper */}
-        <aside className="lg:col-span-2">
-          <div className="sticky top-24">
-            <div className="mb-4">
+    <Section padding="sm">
+      <Container size="xl">
+        <div className="space-y-8">
+          {/* Hero header */}
+          <div className="relative overflow-hidden rounded-2xl border bg-white shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-400 opacity-10" />
+            <div className="relative p-6 md:p-8">
               <h1 className="text-3xl font-bold text-slate-900">
                 Your Portfolio
               </h1>
-              <p className="text-slate-600">
-                Complete your portfolio to get verified and start applying.
+              <p className="text-slate-600 mt-1">
+                Get verified and start applying to jobs
               </p>
             </div>
-            {isVerified !== null && (
-              <div
-                className={`mb-4 rounded-lg border p-3 flex items-start gap-2 ${
-                  isVerified
-                    ? "border-green-200 bg-green-50"
-                    : "border-yellow-200 bg-yellow-50"
-                }`}
-              >
-                {isVerified ? (
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-green-600" />
-                ) : (
-                  <AlertCircle className="mt-0.5 h-4 w-4 text-yellow-600" />
-                )}
-                <div>
-                  <p
-                    className={`text-sm font-medium ${
-                      isVerified ? "text-green-800" : "text-yellow-800"
-                    }`}
-                  >
-                    {isVerified ? "Verified" : "Awaiting verification"}
-                  </p>
-                  {!isVerified && (
-                    <p className="text-xs text-slate-600">
-                      Submit all sections accurately to speed up review.
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Verification Steps</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <ul className="space-y-2">
-                  {steps.map((s, idx) => {
-                    const done = idx < stepIndex;
-                    const active = s.key === currentStep;
-                    const Icon =
-                      idx === 0
-                        ? HeartPulse
-                        : idx === 1
-                        ? ClipboardList
-                        : idx === 2
-                        ? GraduationCap
-                        : idx === 3
-                        ? SlidersHorizontal
-                        : CheckCircle2;
-                    return (
-                      <li key={s.key}>
-                        <button
-                          type="button"
-                          onClick={() => setCurrentStep(s.key)}
-                          className={`w-full text-left flex items-center gap-3 rounded-lg border px-3 py-2 transition ${
-                            active
-                              ? "border-blue-300 bg-blue-50"
-                              : "border-slate-200 hover:bg-slate-50"
-                          }`}
-                        >
-                          <span
-                            className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-                              done
-                                ? "bg-green-600 text-white"
-                                : active
-                                ? "bg-blue-600 text-white"
-                                : "bg-slate-200 text-slate-700"
-                            }`}
-                          >
-                            {idx + 1}
-                          </span>
-                          <Icon
-                            className={`h-4 w-4 ${
-                              done
-                                ? "text-green-600"
-                                : active
-                                ? "text-blue-600"
-                                : "text-slate-500"
-                            }`}
-                          />
-                          <span
-                            className={`font-medium ${
-                              active ? "text-blue-700" : "text-slate-700"
-                            }`}
-                          >
-                            {s.label}
-                          </span>
-                          {done && (
-                            <CheckCircle2 className="ml-auto h-4 w-4 text-green-600" />
-                          )}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <div className="mt-4">
-                  <Progress value={progress} className="h-2" />
-                  <div className="mt-2 text-sm text-slate-600">
-                    Step {stepIndex + 1} of {steps.length}:{" "}
-                    {steps[stepIndex].label}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
-        </aside>
 
-        {/* Right: Form */}
-        <section className="lg:col-span-3">
-          <Card className="shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                {(() => {
-                  const I = StepIcon;
-                  return <I className="h-5 w-5 text-blue-600" />;
-                })()}
-                <CardTitle>Verification Form</CardTitle>
-              </div>
-              <Badge
-                variant="outline"
-                className="border-blue-200 text-blue-700"
-              >
-                {steps[stepIndex].label}
-              </Badge>
+          <Card>
+            <CardHeader>
+              <CardTitle>Portfolio Details</CardTitle>
+              <CardDescription>
+                Complete all steps to submit your portfolio for verification
+              </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Stepper */}
+              <div className="mb-6">
+                <div className="flex items-center gap-3">
+                  {steps.map((st, idx) => (
+                    <div
+                      key={st.key}
+                      className="flex items-center gap-3 flex-1 min-w-0"
+                    >
+                      <div
+                        className={cn(
+                          "h-8 w-8 rounded-full border flex items-center justify-center text-sm font-semibold",
+                          idx < stepIndex &&
+                            "bg-blue-600 text-white border-blue-600",
+                          idx === stepIndex &&
+                            "bg-blue-50 text-blue-700 border-blue-200",
+                          idx > stepIndex &&
+                            "bg-gray-50 text-gray-600 border-gray-200"
+                        )}
+                        title={st.label}
+                      >
+                        {idx + 1}
+                      </div>
+                      <div className="hidden md:block truncate text-sm font-medium text-slate-700">
+                        {st.label}
+                      </div>
+                      {idx < steps.length - 1 && (
+                        <div
+                          className={cn(
+                            "flex-1 h-0.5 rounded",
+                            idx < stepIndex ? "bg-blue-600" : "bg-gray-200"
+                          )}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {isVerified !== null && (
+                <div
+                  className={cn(
+                    "mb-6 rounded-lg border p-3 flex items-start gap-2",
+                    isVerified
+                      ? "border-emerald-200 bg-emerald-50"
+                      : "border-amber-200 bg-amber-50"
+                  )}
+                >
+                  {isVerified ? (
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-600" />
+                  ) : (
+                    <AlertCircle className="mt-0.5 h-4 w-4 text-amber-600" />
+                  )}
+                  <div>
+                    <p
+                      className={cn(
+                        "text-sm font-medium",
+                        isVerified ? "text-emerald-800" : "text-amber-800"
+                      )}
+                    >
+                      {isVerified ? "Verified" : "Awaiting verification"}
+                    </p>
+                    {!isVerified && (
+                      <p className="text-xs text-slate-600">
+                        Submit all sections accurately to speed up review.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {loadingPrefill ? (
                 <div className="py-10 text-center text-slate-500">Loading…</div>
               ) : (
                 <form
                   onSubmit={form.handleSubmit(onSubmit, (errors) => {
-                    // Show first error message in a toast for visibility
                     const first = Object.values(errors)[0] as any;
                     if (first?.message) toast.error(String(first.message));
                   })}
-                  className="space-y-6"
+                  className="space-y-8"
                 >
-                  {currentStep === "basics" && (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="sex">
-                          Sex <span className="text-red-500">*</span>
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="sex"
-                            {...form.register("sex")}
-                            placeholder="Male / Female"
-                            className="pl-9"
-                          />
-                          <HeartPulse className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  {stepIndex === 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <HeartPulse className="h-5 w-5 text-blue-600" /> Basic
+                        Information
+                      </h3>
+                      {/* Profile Photo */}
+                      <div className="rounded-lg border p-4">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-16 w-16 ring-2 ring-blue-100">
+                            <AvatarImage
+                              src={previewUrl || undefined}
+                              alt="Profile"
+                            />
+                            <AvatarFallback className="bg-blue-600 text-white">
+                              {/* Fallback could be initials if we had name */}
+                              IMG
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 space-y-2">
+                            <Label htmlFor="profile_image">
+                              Profile Image URL (optional)
+                            </Label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="profile_image"
+                                placeholder="https://..."
+                                {...form.register("profile_image")}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onPickFile}
+                              >
+                                <UploadCloud className="h-4 w-4 mr-2" /> Upload
+                              </Button>
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={onFileChange}
+                                className="hidden"
+                              />
+                            </div>
+                            <p className="text-xs text-slate-500">
+                              You can paste a URL now; we'll wire cloud upload
+                              later.
+                            </p>
+                            {previewUrl && (
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant="outline"
+                                  className="border-blue-200 text-blue-700"
+                                >
+                                  Preview Ready
+                                </Badge>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setPreviewUrl(null);
+                                    selectedFileRef.current = null;
+                                    form.setValue("profile_image", "");
+                                  }}
+                                >
+                                  <X className="h-4 w-4 mr-1" /> Clear
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <FieldError name="sex" />
                       </div>
-                      <div>
-                        <Label htmlFor="phone_no">
-                          Phone Number <span className="text-red-500">*</span>
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="phone_no"
-                            {...form.register("phone_no")}
-                            placeholder="(555) 555-1234"
-                            className="pl-9"
-                          />
-                          <Phone className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="sex">
+                            Sex <RequiredMark />
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              id="sex"
+                              {...form.register("sex")}
+                              placeholder="Male / Female"
+                              className="pl-9"
+                            />
+                            <HeartPulse className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                          </div>
+                          <FieldError name="sex" />
                         </div>
-                        <FieldError name="phone_no" />
-                      </div>
-                      <div>
-                        <Label htmlFor="age">
-                          Age <span className="text-red-500">*</span>
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="age"
-                            type="number"
-                            {...form.register("age", { valueAsNumber: true })}
-                            className="pl-9"
-                          />
-                          <Hash className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <div>
+                          <Label htmlFor="phone_no">
+                            Phone Number <RequiredMark />
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              id="phone_no"
+                              {...form.register("phone_no")}
+                              placeholder="(555) 555-1234"
+                              className="pl-9"
+                            />
+                            <Phone className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                          </div>
+                          <FieldError name="phone_no" />
                         </div>
-                        <FieldError name="age" />
-                      </div>
-                      <div>
-                        <Label htmlFor="english_skill">
-                          English Skill <span className="text-red-500">*</span>
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="english_skill"
-                            {...form.register("english_skill")}
-                            placeholder="Basic / Fluent"
-                            className="pl-9"
-                          />
-                          <Languages className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <div>
+                          <Label htmlFor="age">
+                            Age <RequiredMark />
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              id="age"
+                              type="number"
+                              {...form.register("age", { valueAsNumber: true })}
+                              className="pl-9"
+                            />
+                            <Hash className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                          </div>
+                          <FieldError name="age" />
                         </div>
-                        <FieldError name="english_skill" />
+                        <div>
+                          <Label htmlFor="english_skill">
+                            English Skill <RequiredMark />
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              id="english_skill"
+                              {...form.register("english_skill")}
+                              placeholder="Basic / Fluent"
+                              className="pl-9"
+                            />
+                            <Languages className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                          </div>
+                          <FieldError name="english_skill" />
+                        </div>
                       </div>
                     </div>
                   )}
 
-                  {currentStep === "experience" && (
+                  {stepIndex === 1 && (
                     <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5 text-green-600" />{" "}
+                        Experience Details
+                      </h3>
                       <div>
                         <Label htmlFor="experience">Experience</Label>
                         <Textarea
@@ -485,186 +571,175 @@ export default function CaregiverPortfolioPage() {
                     </div>
                   )}
 
-                  {currentStep === "education" && (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="university_college">
-                          University/College
-                        </Label>
-                        <Input
-                          id="university_college"
-                          {...form.register("university_college")}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="study_field">Field of Study</Label>
-                        <Input
-                          id="study_field"
-                          {...form.register("study_field")}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label htmlFor="degree">Degree</Label>
-                        <Input id="degree" {...form.register("degree")} />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === "preferences" && (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="suitable_work_days">
-                          Suitable Work Days
-                        </Label>
-                        <Input
-                          id="suitable_work_days"
-                          {...form.register("suitable_work_days")}
-                          placeholder="e.g. Mon-Fri"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="suitable_work_shift">
-                          Suitable Work Shift
-                        </Label>
-                        <Input
-                          id="suitable_work_shift"
-                          {...form.register("suitable_work_shift")}
-                          placeholder="e.g. Night shift"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label htmlFor="comfortability">Comfortability</Label>
-                        <Textarea
-                          id="comfortability"
-                          {...form.register("comfortability")}
-                          placeholder="What tasks are you comfortable with?"
-                        />
-                        <FieldError name="comfortability" />
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === "review" && (
-                    <div className="space-y-4 text-sm text-slate-700">
-                      <p>
-                        Please review your information before submitting. You
-                        can go back to make changes.
-                      </p>
+                  {stepIndex === 2 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <GraduationCap className="h-5 w-5 text-purple-600" />{" "}
+                        Education
+                      </h3>
                       <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="university_college">
+                            University/College
+                          </Label>
+                          <Input
+                            id="university_college"
+                            {...form.register("university_college")}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="study_field">Field of Study</Label>
+                          <Input
+                            id="study_field"
+                            {...form.register("study_field")}
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label htmlFor="degree">Degree</Label>
+                          <Input id="degree" {...form.register("degree")} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {stepIndex === 3 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <SlidersHorizontal className="h-5 w-5 text-orange-600" />{" "}
+                        Preferences
+                      </h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="suitable_work_days">
+                            Suitable Work Days
+                          </Label>
+                          <Input
+                            id="suitable_work_days"
+                            {...form.register("suitable_work_days")}
+                            placeholder="e.g. Mon-Fri"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="suitable_work_shift">
+                            Suitable Work Shift
+                          </Label>
+                          <Input
+                            id="suitable_work_shift"
+                            {...form.register("suitable_work_shift")}
+                            placeholder="e.g. Night shift"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label htmlFor="comfortability">Comfortability</Label>
+                          <Textarea
+                            id="comfortability"
+                            {...form.register("comfortability")}
+                            placeholder="What tasks are you comfortable with?"
+                          />
+                          <FieldError name="comfortability" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {stepIndex === 4 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        Review & Submit
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         {(() => {
                           const v = form.getValues();
                           return (
                             <>
-                              <Card className="border-slate-200">
-                                <CardHeader className="py-3">
-                                  <CardTitle className="text-sm">
-                                    Basics
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-sm space-y-1">
-                                  <div>
-                                    <span className="text-slate-500">Sex:</span>{" "}
-                                    {v.sex || "-"}{" "}
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">
-                                      Phone:
-                                    </span>{" "}
-                                    {v.phone_no || "-"}{" "}
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">Age:</span>{" "}
-                                    {v.age || "-"}{" "}
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">
-                                      English:
-                                    </span>{" "}
-                                    {v.english_skill || "-"}{" "}
-                                  </div>
-                                </CardContent>
-                              </Card>
-                              <Card className="border-slate-200">
-                                <CardHeader className="py-3">
-                                  <CardTitle className="text-sm">
-                                    Experience
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-sm space-y-1">
-                                  <div className="line-clamp-3">
-                                    <span className="text-slate-500">
-                                      Experience:
-                                    </span>{" "}
-                                    {v.experience || "-"}{" "}
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">
-                                      State:
-                                    </span>{" "}
-                                    {v.state_where_experience_gained || "-"}{" "}
-                                  </div>
-                                  <div className="line-clamp-2">
-                                    <span className="text-slate-500">
-                                      Certifications:
-                                    </span>{" "}
-                                    {v.certifications || "-"}{" "}
-                                  </div>
-                                </CardContent>
-                              </Card>
-                              <Card className="border-slate-200">
-                                <CardHeader className="py-3">
-                                  <CardTitle className="text-sm">
-                                    Education
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-sm space-y-1">
-                                  <div>
-                                    <span className="text-slate-500">
-                                      University:
-                                    </span>{" "}
-                                    {v.university_college || "-"}{" "}
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">
-                                      Field:
-                                    </span>{" "}
-                                    {v.study_field || "-"}{" "}
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">
-                                      Degree:
-                                    </span>{" "}
-                                    {v.degree || "-"}{" "}
-                                  </div>
-                                </CardContent>
-                              </Card>
-                              <Card className="border-slate-200">
-                                <CardHeader className="py-3">
-                                  <CardTitle className="text-sm">
-                                    Preferences
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-sm space-y-1">
-                                  <div>
-                                    <span className="text-slate-500">
-                                      Work Days:
-                                    </span>{" "}
-                                    {v.suitable_work_days || "-"}{" "}
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">
-                                      Work Shift:
-                                    </span>{" "}
-                                    {v.suitable_work_shift || "-"}{" "}
-                                  </div>
-                                  <div className="line-clamp-2">
-                                    <span className="text-slate-500">
-                                      Comfortability:
-                                    </span>{" "}
-                                    {v.comfortability || "-"}{" "}
-                                  </div>
-                                </CardContent>
-                              </Card>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">Sex</div>
+                                <div className="font-medium">
+                                  {v.sex || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">Phone</div>
+                                <div className="font-medium">
+                                  {v.phone_no || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">Age</div>
+                                <div className="font-medium">
+                                  {v.age || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">English</div>
+                                <div className="font-medium">
+                                  {v.english_skill || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50 md:col-span-2">
+                                <div className="text-slate-500">Experience</div>
+                                <div className="font-medium whitespace-pre-wrap">
+                                  {v.experience || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">
+                                  State where experience gained
+                                </div>
+                                <div className="font-medium">
+                                  {v.state_where_experience_gained || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">
+                                  Certifications
+                                </div>
+                                <div className="font-medium whitespace-pre-wrap">
+                                  {v.certifications || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">University</div>
+                                <div className="font-medium">
+                                  {v.university_college || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">Field</div>
+                                <div className="font-medium">
+                                  {v.study_field || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">Degree</div>
+                                <div className="font-medium">
+                                  {v.degree || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">
+                                  Suitable Work Days
+                                </div>
+                                <div className="font-medium">
+                                  {v.suitable_work_days || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">
+                                  Suitable Work Shift
+                                </div>
+                                <div className="font-medium">
+                                  {v.suitable_work_shift || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50 md:col-span-2">
+                                <div className="text-slate-500">
+                                  Comfortability
+                                </div>
+                                <div className="font-medium whitespace-pre-wrap">
+                                  {v.comfortability || "—"}
+                                </div>
+                              </div>
                             </>
                           );
                         })()}
@@ -672,39 +747,54 @@ export default function CaregiverPortfolioPage() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-200">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={back}
-                      disabled={stepIndex === 0}
-                    >
-                      <ChevronLeft className="mr-2 h-4 w-4" /> Back
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          try {
-                            const values = form.getValues();
-                            localStorage.setItem(
-                              "portfolioDraft",
-                              JSON.stringify(values)
-                            );
-                            // lightweight feedback
-                            console.info("Draft saved");
-                          } catch {}
-                        }}
-                      >
-                        Save Draft
-                      </Button>
-                      {stepIndex < steps.length - 1 ? (
-                        <Button type="button" onClick={next}>
-                          Next <ChevronRight className="ml-2 h-4 w-4" />
+                  {/* Actions */}
+                  <div className="flex justify-between gap-4 pt-6">
+                    <div>
+                      {stepIndex === 0 ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => router.back()}
+                          disabled={form.formState.isSubmitting}
+                        >
+                          Cancel
                         </Button>
                       ) : (
-                        <Button type="submit">Submit</Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={back}
+                          disabled={form.formState.isSubmitting}
+                        >
+                          Back
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex gap-3">
+                      {stepIndex < steps.length - 1 && (
+                        <Button
+                          type="button"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          onClick={next}
+                        >
+                          Next
+                        </Button>
+                      )}
+                      {stepIndex === steps.length - 1 && (
+                        <Button
+                          type="submit"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          disabled={form.formState.isSubmitting}
+                        >
+                          {form.formState.isSubmitting ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />{" "}
+                              Submitting...
+                            </>
+                          ) : (
+                            <>Submit Portfolio</>
+                          )}
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -712,8 +802,8 @@ export default function CaregiverPortfolioPage() {
               )}
             </CardContent>
           </Card>
-        </section>
-      </div>
-    </div>
+        </div>
+      </Container>
+    </Section>
   );
 }
