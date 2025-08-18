@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Plus } from "lucide-react";
+import { BRAND } from "zod";
 
 export default function AdminJobsPage() {
   const [jobs, setJobs] = useState<any[]>([]);
@@ -61,7 +62,7 @@ export default function AdminJobsPage() {
           <Button variant="outline" className="gap-2">
             <Filter className="h-4 w-4" /> Filter
           </Button>
-          <Button className="gap-2">
+          <Button variant="brand" className="gap-2">
             <Plus className="h-4 w-4" /> New Job
           </Button>
         </div>
@@ -83,25 +84,25 @@ export default function AdminJobsPage() {
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
             <Button
-              variant={status === "ALL" ? "default" : "outline"}
+              variant={status === "ALL" ? "brand" : "outline"}
               onClick={() => setStatus("ALL")}
             >
               All
             </Button>
             <Button
-              variant={status === "PENDING" ? "default" : "outline"}
+              variant={status === "PENDING" ? "brand" : "outline"}
               onClick={() => setStatus("PENDING")}
             >
               Pending
             </Button>
             <Button
-              variant={status === "APPROVED" ? "default" : "outline"}
+              variant={status === "APPROVED" ? "brand" : "outline"}
               onClick={() => setStatus("APPROVED")}
             >
               Approved
             </Button>
             <Button
-              variant={status === "COMPLETED" ? "default" : "outline"}
+              variant={status === "COMPLETED" ? "brand" : "outline"}
               onClick={() => setStatus("COMPLETED")}
             >
               Completed

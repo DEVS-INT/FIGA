@@ -7,6 +7,8 @@ import { Toaster } from "react-hot-toast";
 import AuthProvider from "./providers/provider";
 import { authOptions } from "@/app/api/auth/authOptions";
 import { getServerSession } from "next-auth";
+import { usePathname } from 'next/navigation';
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +27,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>

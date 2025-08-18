@@ -113,69 +113,95 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <section className="py-20 lg:py-32">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-24 lg:py-36 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+        <div className="absolute inset-0 bg-[url('/pattern-dark.svg')] opacity-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+
+        <div className="absolute top-0 left-0 w-full h-full opacity-30">
+          <div className="absolute top-[15%] left-[10%] w-5 h-5 rounded-full bg-blue-400 animate-pulse"></div>
+          <div className="absolute top-[25%] left-[30%] w-5 h-5 rounded-full bg-indigo-400 animate-pulse delay-200"></div>
+          <div className="absolute top-[10%] left-[50%] w-5 h-5 rounded-full bg-slate-400 animate-pulse delay-300"></div>
+          <div className="absolute top-[30%] left-[15%] w-5 h-5 rounded-full bg-blue-400 animate-pulse delay-250"></div>
+          <div className="absolute top-[20%] left-[70%] w-5 h-5 rounded-full bg-indigo-400 animate-pulse delay-400"></div>
+          <div className="absolute top-[35%] left-[60%] w-5 h-5 rounded-full bg-blue-400 animate-pulse delay-350"></div>
+          <div className="absolute top-[5%] left-[80%] w-5 h-5 rounded-full bg-slate-500 animate-pulse delay-500"></div>
+        </div>
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <Badge className="bg-blue-100 text-blue-800 px-4 py-2 text-sm font-medium">
+            <Badge className="bg-white/10 text-white border-white/20 px-5 py-2 text-sm font-medium hover:scale-105 transition-all duration-300 hover:bg-white/20 backdrop-blur-sm">
               Frequently Asked Questions
             </Badge>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight">
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
               Get Your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-indigo-300 animate-gradient">
                 Questions Answered
               </span>
             </h1>
-            <p className="text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
+
+            <p className="text-xl text-blue-100/90 leading-relaxed max-w-3xl mx-auto">
               Find answers to common questions about our caregiving services, whether you're looking to hire a caregiver or join our team of professionals.
             </p>
-          </div>
-        </div>
-      </section>
 
-      {/* FAQ Sections */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto space-y-16">
-            {/* For Caregivers */}
-            <FAQSection 
-              title="For Caregivers" 
-              faqs={caregiversFAQs}
-              badgeColor="bg-green-100 text-green-800"
-            />
-
-            {/* For Families */}
-            <FAQSection 
-              title="For Families" 
-              faqs={familiesFAQs}
-              badgeColor="bg-blue-100 text-blue-800"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Contact CTA */}
-      <section className="py-20 bg-white/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900">
-              Still Have Questions?
-            </h2>
-            <p className="text-xl text-slate-600">
-              Our team is here to help. Contact us for personalized assistance with your caregiving needs.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/contact">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                  Contact Us
-                </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300">
-                Call (415) 555-CARE
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <Button
+                className="bg-white text-blue-800 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 px-8 py-6 text-lg font-semibold"
+                size="lg"
+                onClick={() =>
+                  document
+                    .getElementById("caregivers")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                For Caregivers
+              </Button>
+              <Button
+                variant="outline"
+                className="bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white px-8 py-6 text-lg font-semibold"
+                size="lg"
+                onClick={() =>
+                  document
+                    .getElementById("familes")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                For Families
               </Button>
             </div>
           </div>
         </div>
+
+        <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-blue-400/10 blur-xl"></div>
+        <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-indigo-400/10 blur-xl"></div>
       </section>
+
+      {/* FAQ Sections - now side by side on large screens */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* For Caregivers - left side */}
+            <div id="caregivers">
+              <FAQSection 
+                title="For Caregivers" 
+                faqs={caregiversFAQs}
+                badgeColor="bg-green-100 text-green-800"
+              />
+            </div>
+
+            {/* For Families - right side */}
+            <div id="familes">
+              <FAQSection 
+                title="For Families" 
+                faqs={familiesFAQs}
+                badgeColor="bg-blue-100 text-blue-800"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
     </div>
   )
 }

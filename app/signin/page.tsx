@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { FigaLogo } from "@/components/figa-logo";
 import { useRouter } from "next/navigation";
 import {
@@ -12,6 +11,8 @@ import {
   Loader2,
   ShieldCheck,
   Sparkles,
+  ArrowRight,
+  Heart,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -64,12 +65,8 @@ export default function SignInPage() {
 
       toast.success("Signed in successfully!", { position: "top-center" });
 
-      // IMPORTANT: do not keep any unconditional redirect here like:
-      // router.push("/employer/dashboard");
-
       const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-      // Try to read the role from the session (accounting for slight delay after sign-in)
       let userRole: string | undefined;
       for (let i = 0; i < 5 && !userRole; i++) {
         const res = await fetch("/api/auth/session", { cache: "no-store" });
@@ -96,6 +93,13 @@ export default function SignInPage() {
     }
   };
 
+  // For the right side content
+  const headWord = "Access";
+  const typed1 = "Trusted Care";
+  const line1Rest = "Trusted Care";
+  const typed2 = "Connections";
+  const line2 = "Connections";
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100/40">
       {/* Background accents */}
@@ -109,21 +113,19 @@ export default function SignInPage() {
         <div className="grid lg:grid-cols-2 gap-10 xl:gap-16 items-center">
           {/* Left: Form */}
           <div>
-            <div className="flex justify-center lg:justify-start mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl flex items-center justify-center shadow-lg">
-                <FigaLogo size="lg" variant="white" />
-              </div>
+            <div className="flex justify-center mb-8 lg:justify-start">
+             
             </div>
-            <div className="mb-6 text-center lg:text-left">
+            {/* <div className="mb-6 text-center lg:text-left">
               <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 mb-2">
                 Welcome back
               </h1>
               <p className="text-slate-600">
                 Sign in to your FIGA Care account
               </p>
-            </div>
+            </div> */}
 
-            <Card className="w-full max-w-md lg:max-w-lg mx-auto lg:mx-0 border border-slate-200 shadow-xl bg-white/90 backdrop-blur">
+            <Card className="w-full max-w-xl mx-auto lg:mx-0 border border-slate-200 shadow-xl bg-white/90 backdrop-blur">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
                 <CardDescription className="text-slate-600">
@@ -222,52 +224,72 @@ export default function SignInPage() {
                     Sign up
                   </Link>
                 </div>
-
-                <div className="mt-6 p-4 bg-blue-50 rounded-md border border-blue-100">
-                  <h3 className="text-sm font-medium text-blue-900 mb-2">
-                    Demo Credentials:
-                  </h3>
-                  <div className="text-xs text-blue-700 space-y-1">
-                    <div>
-                      <strong>Job Seeker:</strong> jobseeker@demo.com / demo123
-                    </div>
-                    <div>
-                      <strong>Employer:</strong> employer@demo.com / demo123
-                    </div>
-                    <div>
-                      <strong>Admin:</strong> admin@figacare.com / admin123
-                    </div>
-                    <div>
-                      <strong>Staff:</strong> staff@figacare.com / staff123
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Right: Visual panel (desktop only) */}
-          <div className="hidden lg:block">
-            <div className="relative h-[620px] w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
-              {/* Animated gradient background */}
-              <div
-                className="absolute inset-0 animate-gradient-move bg-gradient-to-br from-blue-600 via-purple-500 to-pink-400"
-                style={{ backgroundSize: "200% 200%" }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/20 to-transparent" />
-              <div className="absolute bottom-0 p-8 text-white space-y-3">
-                <div className="flex items-center gap-2 text-blue-200">
-                  <ShieldCheck className="w-5 h-5" />
-                  Secure and private
-                </div>
-                <div className="flex items-center gap-2 text-blue-200">
-                  <Sparkles className="w-5 h-5" />
-                  Matched to your needs
-                </div>
-                <p className="mt-2 text-slate-100 text-lg max-w-md">
-                  Compassionate caregivers, trusted by families across the Bay
-                  Area.
+          <div className="hidden lg:flex items-center justify-center h-full">
+            <div className="space-y-8 animate-slide-up max-w-md">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-300 px-6 py-3 text-lg font-semibold animate-fade-in rounded-full inline-flex items-center border">
+                <Heart className="w-5 h-5 mr-2" />
+                Welcome Back to FIGA Care
+              </div>
+
+              <div className="space-y-6">
+                <h1 className="text-4xl lg:text-6xl font-bold text-slate-900 leading-tight">
+                  <span>
+                    {headWord}{" "}
+                    <span>
+                      {typed1}
+                      {typed1.length < line1Rest.length ? (
+                        <span
+                          aria-hidden
+                          className="ml-1 inline-block w-0.5 h-8 bg-slate-900 align-middle animate-pulse"
+                        />
+                      ) : null}
+                    </span>
+                  </span>
+                  <span className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent block animate-gradient">
+                    {typed2}
+                    {typed1.length === line1Rest.length &&
+                    typed2.length < line2.length ? (
+                      <span
+                        aria-hidden
+                        className="ml-1 inline-block w-0.5 h-8 bg-blue-700 align-middle animate-pulse"
+                      />
+                    ) : null}
+                  </span>
+                </h1>
+
+                <p className="text-xl lg:text-2xl text-slate-600 leading-relaxed animate-fade-in-delay font-light">
+                 Log in to continue your journey — whether you’re finding compassionate caregivers or sharing your caregiving skills. Your community is just a click away.
                 </p>
+              </div>
+
+              {/* Call to Action Links */}
+              <div className="space-y-4 pt-4 animate-fade-in-delay-2">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href="/">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-xl font-semibold"
+                    >
+                     Go to Home
+                      <ArrowRight className="ml-3 w-6 h-6" />
+                    </Button>
+                  </Link>
+
+                  <Link href="/about">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full sm:w-auto border-2 border-blue-200 hover:bg-blue-50 px-8 py-6 text-xl bg-transparent"
+                    >
+                      Learn About Us
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

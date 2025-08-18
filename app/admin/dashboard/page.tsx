@@ -30,7 +30,7 @@ import {
   Mail,
   DollarSign,
 } from "lucide-react";
-
+import { useRouter } from "next/navigation";
 export default function AdminDashboardPage() {
   const [kpi, setKpi] = useState({
     totalUsers: 0,
@@ -47,6 +47,7 @@ export default function AdminDashboardPage() {
   const [roleBreakdown, setRoleBreakdown] = useState<
     { name: string; value: number; color: string }[]
   >([]);
+  const router = useRouter();
 
   useEffect(() => {
     let cancelled = false;
@@ -129,22 +130,28 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       {/* Hero */}
-      <div className="rounded-2xl p-6 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white shadow-lg ring-1 ring-blue-400/30">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="relative overflow-hidden rounded-2xl border bg-white shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-sky-500 to-blue-400 opacity-10" />
+        <div className="relative p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-blue-100/90 mt-1">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-600 mt-1">
               Overview of platform performance and activity
             </p>
           </div>
           <div className="flex gap-3">
             <Button
-              variant="secondary"
-              className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+              variant="outline"
+              className="relative bg-white/0 hover:bg-gray-100 border-gray-300"
             >
               Export Reports
             </Button>
-            <Button className="bg-white text-blue-700 hover:bg-blue-50">
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => router.push("/admin/analytics")}
+            >
               Go to Analytics <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>

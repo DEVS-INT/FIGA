@@ -114,8 +114,8 @@ export default function UsersClient({
         <div className="flex gap-2">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" /> New Staff
+              <Button variant="brand" className="gap-2">
+                <Plus  className="h-4 w-4" /> New Staff
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -184,10 +184,10 @@ export default function UsersClient({
             <Tabs
               value={role}
               onValueChange={setRole}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto "
             >
               <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger  value="all">All</TabsTrigger>
                 <TabsTrigger value="EMPLOYEE">Caregivers</TabsTrigger>
                 <TabsTrigger value="EMPLOYER">Employers</TabsTrigger>
                 <TabsTrigger value="STAFF">Staff</TabsTrigger>
