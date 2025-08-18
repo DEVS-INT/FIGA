@@ -9,9 +9,10 @@ export async function middleware(req: NextRequest) {
   const isEmployerArea = pathname.startsWith('/employer')
   const isEmployeeArea = pathname.startsWith('/caregiver')
   const isStaffArea = pathname.startsWith('/staff')
+  const isAdminArea = pathname.startsWith('/admin') 
 
   // Only guard specific areas
-  if (!isEmployerArea && !isEmployeeArea && !isStaffArea) {
+  if (!isEmployerArea && !isEmployeeArea && !isStaffArea && !isAdminArea) {
     return NextResponse.next()
   }
 
@@ -40,7 +41,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(signInUrl)
   }
 
-  if (isStaffArea && role !== 'STAFF' && role !== 'ADMIN') {
+  if (isStaffArea && role !== 'STAFF') {
+    const signInUrl = new URL('/signin', origin)
+    signInUrl.searchParams.set('callbackUrl', req.nextUrl.href)
+    return NextResponse.redirect(signInUrl)
+  }
+
+  if (isAdminArea && role !== 'ADMIN') {
     const signInUrl = new URL('/signin', origin)
     signInUrl.searchParams.set('callbackUrl', req.nextUrl.href)
     return NextResponse.redirect(signInUrl)
@@ -54,6 +61,7 @@ export const config = {
   matcher: [
     '/employer/:path*',
     '/caregiver/:path*',
-  '/staff/:path*',
+    '/staff/:path*',
+    '/admin/:path*',
   ],
 }

@@ -101,7 +101,7 @@ export default function HomePage() {
                     </span>
                   </h1>
 
-                  <p className="text-xl lg:text-2xl text-slate-600 leading-relaxed animate-fade-in-delay font-light">
+                  <p className="text-lg lg:text-xl text-slate-600 leading-relaxed animate-fade-in-delay font-light">
                     We provide skilled, compassionate caregivers matched to your
                     unique needs. Quality care you can trust, when you need it
                     most.
