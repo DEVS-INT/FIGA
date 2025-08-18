@@ -364,43 +364,60 @@ export default function JobsPage() {
         }}
       />
       {/* Hero Banner */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-800 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Perfect Caregiving Job
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed">
-              Discover meaningful opportunities to make a difference in
-              families' lives across the United States
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Badge
-                variant="secondary"
-                className="bg-white/20 text-white border-white/30 px-4 py-2 text-base"
-              >
-                <Heart className="w-4 h-4 mr-2" />
-                {jobs.filter((job) => job.isOpen).length} Active Jobs
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="bg-white/20 text-white border-white/30 px-4 py-2 text-base"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Trusted Families
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="bg-white/20 text-white border-white/30 px-4 py-2 text-base"
-              >
-                <Star className="w-4 h-4 mr-2" />
-                Top Rated Platform
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </section>
+<section className="py-24 lg:py-36 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+  {/* Background elements */}
+  <div className="absolute inset-0 bg-[url('/pattern-dark.svg')] opacity-10"></div>
+  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+
+  {/* Animated dots decoration */}
+  <div className="absolute top-0 left-0 w-full h-full opacity-30">
+    {/* Blue dots group - top left */}
+    <div className="absolute top-[15%] left-[10%] w-5 h-5 rounded-full bg-blue-400 animate-pulse"></div>
+    <div className="absolute top-[25%] left-[30%] w-5 h-5 rounded-full bg-indigo-400 animate-pulse delay-200"></div>
+    <div className="absolute top-[10%] left-[50%] w-5 h-5 rounded-full bg-slate-400 animate-pulse delay-300"></div>
+    <div className="absolute top-[30%] left-[15%] w-5 h-5 rounded-full bg-blue-400 animate-pulse delay-250"></div>
+    <div className="absolute top-[20%] left-[70%] w-5 h-5 rounded-full bg-indigo-400 animate-pulse delay-400"></div>
+    <div className="absolute top-[35%] left-[60%] w-5 h-5 rounded-full bg-blue-400 animate-pulse delay-350"></div>
+    <div className="absolute top-[5%] left-[80%] w-5 h-5 rounded-full bg-slate-500 animate-pulse delay-500"></div>
+
+    {/* Bottom right dots */}
+    <div className="absolute bottom-[20%] right-[15%] w-4 h-4 rounded-full bg-indigo-400 animate-pulse delay-300"></div>
+    <div className="absolute bottom-[30%] right-[30%] w-6 h-6 rounded-full bg-slate-400 animate-pulse delay-700"></div>
+  </div>
+
+  <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <div className="max-w-4xl mx-auto text-center space-y-8">
+      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
+        Find Your Perfect <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-indigo-300 animate-gradient">Caregiving</span> Job
+      </h1>
+
+      <p className="text-xl text-blue-100/90 leading-relaxed max-w-3xl mx-auto">
+        Discover meaningful opportunities to make a difference in families' lives
+        <span className="block sm:inline"> across the United States</span>
+      </p>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
+          <Heart className="w-4 h-4 mr-2 text-pink-300" />
+          {jobs.filter((job) => job.isOpen).length} Active Jobs
+        </Badge>
+        <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
+          <Users className="w-4 h-4 mr-2 text-blue-300" />
+          Trusted Families
+        </Badge>
+        <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
+          <Star className="w-4 h-4 mr-2 text-yellow-300" />
+          Top Rated Platform
+        </Badge>
+      </div>
+
+    </div>
+  </div>
+
+  {/* Large blur circles */}
+  <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-blue-400/10 blur-xl animate-pulse-slow"></div>
+  <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-indigo-400/10 blur-xl animate-pulse-slow delay-1000"></div>
+</section>
 
       {/* Search and Filters */}
       <section className="py-8 bg-white shadow-sm">

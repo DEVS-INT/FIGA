@@ -205,7 +205,7 @@ export default function StaffJobs() {
             </Select>
           </div>
           <Button
-            variant={urgentOnly ? "default" : "outline"}
+            variant={urgentOnly ? "brand" : "outline"}
             className={cn("h-10", urgentOnly ? "bg-blue-600 text-white" : "")}
             onClick={() => setUrgentOnly((v) => !v)}
           >

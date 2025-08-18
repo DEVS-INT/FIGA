@@ -432,7 +432,7 @@ export default function EmployerDashboardPage() {
                           ? "Try adjusting your search or filter criteria."
                           : "You haven't posted any jobs yet."}
                       </p>
-                      <Button onClick={() => router.push("/employer/post-job")}>
+                      <Button variant="brand" onClick={() => router.push("/employer/post-job")}>
                         <PlusIcon className="h-4 w-4 mr-2" />
                         Post Your Job
                       </Button>

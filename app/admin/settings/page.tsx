@@ -42,7 +42,7 @@ export default function AdminSettingsPage() {
               </div>
               <Switch />
             </div>
-            <Button className="mt-2">Save Changes</Button>
+            <Button variant="brand" className="mt-2">Save Changes</Button>
           </CardContent>
         </Card>
 

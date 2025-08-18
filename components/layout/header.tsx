@@ -160,7 +160,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     variant="ghost"
                     className={cn(
                       "hover:bg-blue-50 hover:text-blue-600 transition-all duration-300",
-                      pathname === "/signin" && "bg-blue-50 text-blue-600"
+                      pathname === "/signin" && " text-blue-600"
                     )}
                     onClick={handleLogin}
                   >
@@ -170,7 +170,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                 <Link href="/signup">
                   <Button
                     className={cn(
-                      "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105",
+                      "bg-gradient-to-r from-blue-600 to-blue-900 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105",
                       pathname === "/signup" &&
                         "from-blue-700 to-blue-800 shadow-xl scale-105"
                     )}
@@ -258,7 +258,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                         variant="ghost"
                         className={cn(
                           "w-full justify-start text-slate-700 hover:text-blue-600 hover:bg-blue-50",
-                          pathname === "/signin" && "text-blue-600 bg-blue-50"
+                          pathname === "/signin" && "text-blue-600"
                         )}
                         onClick={() => {
                           setMobileMenuOpen(false);
@@ -272,7 +272,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                       <Button
                         className={cn(
                           "w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white",
-                          pathname === "/signup" && "from-blue-700 to-blue-800"
+                          pathname === "/signup" && "from-blue-700 to-blue-900"
                         )}
                         onClick={() => {
                           setMobileMenuOpen(false);
