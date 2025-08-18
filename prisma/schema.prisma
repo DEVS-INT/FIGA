@@ -28,6 +28,7 @@ model User {
   email                         String               @unique
   password                      String
   role                          Role
+  is_active                     Boolean              @default(true)
   created_at                    DateTime             @default(now())
   updated_at                    DateTime             @updatedAt
   Job                           Job[]
