@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { FigaLogo } from "@/components/figa-logo";
 import {
   Form,
   FormControl,
@@ -12,7 +14,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Eye, EyeOff, Heart, User } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Heart,
+  User,
+  Briefcase,
+  Home as HomeIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -86,39 +95,84 @@ export default function SignUpPage() {
     }
   };
 
-  // For the right side content
-  const headWord = "Start";
-  const typed1 = "Your  ";
-  const line1Rest = "Your ";
-  const typed2 = "Journey ";
-  const line2 = "Journey ";
-
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100/40">
-      {/* Background accents */}
+    <div className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-100/50 px-4 py-4">
+      {/* subtle brand blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-300/25 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 -left-10 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12">
-        <div className="grid lg:grid-cols-2 gap-10 xl:gap-16 items-center">
-          {/* Left: Form */}
-          <div>
-            {/* <div className="mb-6 text-center lg:text-left">
-              <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 mb-2">
-                Create your account
-              </h1>
-              <p className="text-slate-600">Join FIGA Care to get started</p>
-            </div> */}
+      <div className="relative z-10 w-full max-w-6xl">
+        {/* Home button in the top-left of the container */}
+        <div className="absolute top-3 left-3 md:top-4 md:left-4 z-20">
+          <Button
+            type="button"
+            size="sm"
+            className="rounded-full bg-white/80 hover:bg-white text-slate-700 shadow backdrop-blur"
+            onClick={() => router.push("/")}
+          >
+            <HomeIcon className="w-4 h-4 mr-1.5" /> Home
+          </Button>
+        </div>
+        <div className="grid md:grid-cols-2 rounded-3xl shadow-2xl border border-slate-200 overflow-hidden bg-white/80 backdrop-blur md:h-[600px] lg:h-[640px] max-h-[90svh]">
+          {/* Left: image panel (mirrored vs. sign-in) */}
+          <div className="relative hidden md:block h-full bg-blue-900">
+            <Image
+              src="/signin.png"
+              alt="Caregiver focused and ready"
+              fill
+              sizes="(max-width: 768px) 0px, 50vw"
+              priority
+              className="object-cover [object-position:68%_center]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/70 via-blue-700/40 to-transparent" />
+            <div className="absolute inset-0 p-8 flex flex-col justify-between">
+              <div className="flex items-center justify-end text-white/90">
+                <span className="inline-flex items-center bg-white/10 backdrop-blur px-3 py-1 rounded-full border border-white/20 text-sm">
+                  <Heart className="w-4 h-4 mr-1" /> Join a caring community
+                </span>
+              </div>
+              <div className="text-white">
+                <h2 className="text-3xl lg:text-4xl font-bold leading-tight">
+                  Create your FIGA account
+                </h2>
+                <p className="mt-3 text-white/80 max-w-sm">
+                  Start your journey—connect with families and caregivers in a
+                  trusted network.
+                </p>
+              </div>
+            </div>
+            {/* Motto below the image area */}
+            <div className="absolute left-4 right-4 bottom-4">
+              <div className="bg-white/90 backdrop-blur-sm text-blue-900 text-sm md:text-base px-4 py-3 rounded-xl shadow-md border border-white/60">
+                Compassion meets reliability. Building trusted care connections,
+                one match at a time.
+              </div>
+            </div>
+          </div>
 
-            <div className="w-full max-w-md lg:max-w-lg mx-auto lg:mx-0">
+          {/* Right: form panel */}
+          <div className="p-6 sm:p-8 lg:p-10 pt-8 md:pt-10 lg:pt-12 flex h-full justify-center items-start overflow-y-auto max-h-full">
+            <div className="w-full max-w-md">
+              <div className="flex items-center justify-center mb-6">
+                <FigaLogo size="lg" />
+              </div>
+
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-6 bg-white/90 backdrop-blur rounded-2xl border border-slate-200 shadow-xl p-6"
+                  className="space-y-6 bg-transparent"
                 >
+                  <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+                      Sign Up
+                    </h1>
+                    <p className="text-slate-600 mt-1">
+                      Join FIGA Care to get started
+                    </p>
+                  </div>
+
                   {/* Role Selection */}
                   <FormField
                     control={form.control}
@@ -134,7 +188,7 @@ export default function SignUpPage() {
                           className="grid grid-cols-2 gap-4"
                         >
                           <label
-                            className={`p-4 border rounded-lg cursor-pointer text-center ${
+                            className={`p-4 border rounded-lg cursor-pointer text-center flex flex-col items-center justify-center gap-2 ${
                               field.value === "EMPLOYEE"
                                 ? "border-blue-500 bg-blue-50"
                                 : "border-slate-200"
@@ -144,10 +198,17 @@ export default function SignUpPage() {
                               value="EMPLOYEE"
                               className="sr-only"
                             />
-                            Employee
+                            <User
+                              className={
+                                field.value === "EMPLOYEE"
+                                  ? "text-blue-600"
+                                  : "text-slate-500"
+                              }
+                            />
+                            <span>Employee</span>
                           </label>
                           <label
-                            className={`p-4 border rounded-lg cursor-pointer text-center ${
+                            className={`p-4 border rounded-lg cursor-pointer text-center flex flex-col items-center justify-center gap-2 ${
                               field.value === "EMPLOYER"
                                 ? "border-blue-500 bg-blue-50"
                                 : "border-slate-200"
@@ -157,7 +218,14 @@ export default function SignUpPage() {
                               value="EMPLOYER"
                               className="sr-only"
                             />
-                            Employer
+                            <Briefcase
+                              className={
+                                field.value === "EMPLOYER"
+                                  ? "text-blue-600"
+                                  : "text-slate-500"
+                              }
+                            />
+                            <span>Employer</span>
                           </label>
                         </RadioGroup>
                         <FormMessage className="text-red-500 text-xs" />
@@ -312,7 +380,7 @@ export default function SignUpPage() {
                     {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
 
-                  <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-center text-sm text-gray-600">
                     Already have an account?{" "}
                     <Link
                       href="/signin"
@@ -323,73 +391,6 @@ export default function SignUpPage() {
                   </div>
                 </form>
               </Form>
-            </div>
-          </div>
-
-          {/* Right: Visual panel (desktop only) */}
-          <div className="hidden lg:flex items-center justify-center h-full">
-            <div className="space-y-8 animate-slide-up max-w-md">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-300 px-6 py-3 text-lg font-semibold animate-fade-in rounded-full inline-flex items-center border">
-                <Heart className="w-5 h-5 mr-2" />
-                Join a Caring Community
-              </div>
-
-              <div className="space-y-6">
-                <h1 className="text-4xl lg:text-6xl font-bold text-slate-900 leading-tight">
-                  <span>
-                    {headWord}{" "}
-                    <span>
-                      {typed1}
-                      {typed1.length < line1Rest.length ? (
-                        <span
-                          aria-hidden
-                          className="ml-1 inline-block w-0.5 h-8 bg-slate-900 align-middle animate-pulse"
-                        />
-                      ) : null}
-                    </span>
-                  </span>
-                  <span className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent block animate-gradient">
-                    {typed2}
-                    {typed1.length === line1Rest.length &&
-                    typed2.length < line2.length ? (
-                      <span
-                        aria-hidden
-                        className="ml-1 inline-block w-0.5 h-8 bg-blue-700 align-middle animate-pulse"
-                      />
-                    ) : null}
-                  </span>
-                </h1>
-
-                <p className="text-xl lg:text-2xl text-slate-600 leading-relaxed animate-fade-in-delay font-light">
-                  Whether you’re a caregiver looking to share your skills, or a family in need of support, FIGA Care makes it easy to connect.
-Create your account today and become part of a trusted network built on compassion and reliability.
-                </p>
-              </div>
-
-              {/* Call to Action Links */}
-              <div className="space-y-4 pt-4 animate-fade-in-delay-2">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/">
-                    <Button
-                      size="lg"
-                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-xl font-semibold"
-                    >
-                      Go to Home
-                      <ArrowRight className="ml-3 w-6 h-6" />
-                    </Button>
-                  </Link>
-
-                  <Link href="/about">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="w-full sm:w-auto border-2 border-blue-200 hover:bg-blue-50 px-8 py-6 text-xl bg-transparent"
-                    >
-                      Learn About Us
-                    </Button>
-                  </Link>
-                </div>
-              </div>
             </div>
           </div>
         </div>
