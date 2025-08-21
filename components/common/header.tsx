@@ -149,7 +149,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                 href={link.href}
                 className={cn(
                   "text-slate-700 hover:text-blue-600 transition-all duration-300 font-medium relative group px-3 py-2 rounded-lg",
-                  isActiveLink(link.href) && "text-blue-600  shadow-sm"
+                  isActiveLink(link.href) && "text-blue-600"
                 )}
               >
                 {link.label}
@@ -296,7 +296,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   href={link.href}
                   className={cn(
                     "text-slate-700 hover:text-blue-600 font-medium py-2 px-3 rounded-lg transition-colors",
-                    isActiveLink(link.href) && "text-blue-600  shadow-sm"
+                    isActiveLink(link.href) && "text-blue-600"
                   )}
                   onClick={() => setMobileMenuOpen(false)}
                 >
