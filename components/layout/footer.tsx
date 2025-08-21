@@ -53,6 +53,25 @@ export function Footer() {
               >
                 <Linkedin className="w-5 h-5" />
               </a>
+              {/* Telegram */}
+              <a
+                href="https://t.me/your_handle"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Telegram"
+                title="Telegram"
+                className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors duration-300"
+              >
+                {/* Inline Telegram logo SVG to avoid extra deps */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path d="M12 0C5.371 0 0 5.371 0 12s5.371 12 12 12 12-5.371 12-12S18.629 0 12 0zm5.3 8.034l-1.675 7.9c-.127.575-.464.712-.94.442l-2.6-1.92-1.254 1.21c-.139.14-.254.254-.515.254l.183-2.621 4.762-4.3c.207-.184-.045-.289-.322-.103l-5.885 3.706-2.536-.793c-.552-.173-.565-.552.116-.816l9.91-3.824c.535-.2 1.005.116 1.145.907z" />
+                </svg>
+              </a>
             </div>
           </div>
 

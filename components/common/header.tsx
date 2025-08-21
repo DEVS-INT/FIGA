@@ -242,7 +242,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   variant="ghost"
                   className={cn(
                     "hover:bg-blue-50 hover:text-blue-600 transition-all duration-300",
-                    pathname === "/signin" && "bg-blue-50 text-blue-600"
+                    pathname === "/signin" && " text-blue-600"
                   )}
                   onClick={handleLogin}
                 >
@@ -348,7 +348,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                       variant="ghost"
                       className={cn(
                         "w-full justify-start text-slate-700 hover:text-blue-600 hover:bg-blue-50",
-                        pathname === "/signin" && "text-blue-600 bg-blue-50"
+                        pathname === "/signin" && "text-blue-600 "
                       )}
                       onClick={() => {
                         setMobileMenuOpen(false);

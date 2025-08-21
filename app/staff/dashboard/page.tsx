@@ -161,13 +161,13 @@ export default function StaffDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline">
+          <Button asChild variant="brand">
             <Link href="/staff/applicants">Applicants</Link>
           </Button>
-          <Button asChild variant="outline">
+          <Button asChild variant="brand">
             <Link href="/staff/jobs">Jobs</Link>
           </Button>
-          <Button asChild>
+          <Button asChild variant="brand">
             <Link href="/staff/portfolios">Portfolios</Link>
           </Button>
         </div>
@@ -336,7 +336,7 @@ export default function StaffDashboard() {
               )}
             </div>
             <div className="mt-3 text-right">
-              <Button asChild>
+              <Button asChild variant="brand">
                 <Link href="/staff/portfolios">Open portfolios</Link>
               </Button>
             </div>

@@ -69,7 +69,7 @@ export default function StaffMessages() {
                 required
               />
             </div>
-            <Button type="submit" disabled={sending} className="w-full">
+            <Button variant="brand" type="submit" disabled={sending} className="w-full">
               {sending ? "Sending…" : "Send Message"}
             </Button>
           </form>

@@ -78,7 +78,7 @@ export default function NewEmployerPage() {
                 required
               />
             </div>
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button variant="brand" type="submit" disabled={loading} className="w-full">
               {loading ? "Creating…" : "Create Employer"}
             </Button>
           </form>
