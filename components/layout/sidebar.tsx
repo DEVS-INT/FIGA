@@ -103,6 +103,7 @@ export function Sidebar({ variant = "employer", className }: SidebarProps) {
           { href: "/staff/dashboard", label: "Dashboard", icon: Home },
           { href: "/staff/jobs", label: "Manage Jobs", icon: Briefcase },
           { href: "/staff/applicants", label: "Applicants", icon: Users },
+          { href: "/staff/employees", label: "Employees", icon: Users },
           { href: "/staff/portfolios", label: "Portfolios", icon: User },
           { href: "/staff/employers/new", label: "New Employer", icon: User },
           { href: "/staff/messages", label: "Messages", icon: FileText },
