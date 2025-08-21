@@ -21,13 +21,7 @@ import {
 import { toast } from "react-hot-toast";
 import { StaffHeader } from "@/components/staff";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Status select removed — page shows only unverified portfolios
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -42,9 +36,7 @@ export default function PortfoliosVerify() {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<"ALL" | "VERIFIED" | "UNVERIFIED">(
-    "ALL"
-  );
+  // Removed status state; always showing unverified portfolios only
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
 
@@ -94,12 +86,7 @@ export default function PortfoliosVerify() {
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return rows.filter((r) => {
-      const byStatus =
-        status === "ALL"
-          ? true
-          : status === "VERIFIED"
-          ? r.is_verified
-          : !r.is_verified;
+      const byStatus = !r.is_verified; // only unverified
       const byTerm = !term
         ? true
         : [r.user?.fullname, r.user?.email, r.phone_no, r.english_skill]
@@ -107,7 +94,7 @@ export default function PortfoliosVerify() {
             .some((s: string) => s.toLowerCase().includes(term));
       return byStatus && byTerm;
     });
-  }, [rows, q, status]);
+  }, [rows, q]);
 
   if (loading)
     return (
@@ -175,19 +162,6 @@ export default function PortfoliosVerify() {
           </div>
         </div>
         <div className="flex gap-3 items-center">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-500" />
-            <Select value={status} onValueChange={(v) => setStatus(v as any)}>
-              <SelectTrigger className="h-10 w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All</SelectItem>
-                <SelectItem value="VERIFIED">Verified</SelectItem>
-                <SelectItem value="UNVERIFIED">Unverified</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <Button variant="outline" className="h-10" onClick={load}>
             <RefreshCw className="h-4 w-4 mr-2" /> Refresh
           </Button>
