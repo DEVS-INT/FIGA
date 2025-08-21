@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { useSession, signIn } from "next-auth/react";
 
 interface HeaderProps {
@@ -166,6 +167,9 @@ export function Header({ variant = "default" }: HeaderProps) {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            {isAuthenticated && isEmployee && (
+              <EmployeeActiveToggle />
+            )}
             {isAuthenticated ? (
               // Only show avatar for EMPLOYER role
               isEmployer ? (
@@ -202,7 +206,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                // Non-employer: show account dropdown with initial avatar
+                // Non-employer (includes STAFF/ADMIN/EMPLOYEE): show account dropdown with initial avatar
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Avatar className="cursor-pointer border-2 border-blue-500 hover:scale-105 transition-transform">
@@ -219,6 +223,13 @@ export function Header({ variant = "default" }: HeaderProps) {
                     <DropdownMenuItem asChild>
                       <Link href={getProfilePath()}>Profile</Link>
                     </DropdownMenuItem>
+                    {/* Staff/Admin quick dashboard entry */}
+                    {(session?.user?.role === "STAFF" ||
+                      session?.user?.role === "ADMIN") && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/staff/dashboard">Staff Dashboard</Link>
+                      </DropdownMenuItem>
+                    )}
                     {isEmployee && (
                       <DropdownMenuItem asChild>
                         <Link href="/caregiver/portfolio">Portfolio</Link>
@@ -377,5 +388,61 @@ export function Header({ variant = "default" }: HeaderProps) {
         )}
       </div>
     </header>
+  );
+}
+
+function EmployeeActiveToggle() {
+  const { data: session } = useSession();
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  // fetch current status
+  React.useEffect(() => {
+    let alive = true;
+    const run = async () => {
+      try {
+        const res = await fetch("/api/caregiver/status", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (alive) setEnabled(!!json.is_active);
+      } catch {}
+    };
+    run();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const toggle = async (next: boolean) => {
+    if (enabled === null) return;
+    setEnabled(next);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/caregiver/status", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: next }),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+    } catch {
+      // revert on failure
+      setEnabled(!next);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!session || enabled === null) return null;
+
+  return (
+    <div className="flex items-center gap-2 pr-2">
+      <span className="text-sm text-slate-600">{enabled ? "Active" : "Inactive"}</span>
+      <Switch
+        checked={enabled}
+        onCheckedChange={(v) => toggle(!!v)}
+        disabled={busy}
+        aria-label="Availability status"
+      />
+    </div>
   );
 }
