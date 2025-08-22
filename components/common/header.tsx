@@ -167,9 +167,7 @@ export function Header({ variant = "default" }: HeaderProps) {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {isAuthenticated && isEmployee && (
-              <EmployeeActiveToggle />
-            )}
+            {isAuthenticated && isEmployee && <EmployeeActiveToggle />}
             {isAuthenticated ? (
               // Only show avatar for EMPLOYER role
               isEmployer ? (
@@ -436,7 +434,9 @@ function EmployeeActiveToggle() {
 
   return (
     <div className="flex items-center gap-2 pr-2">
-      <span className="text-sm text-slate-600">{enabled ? "Active" : "Inactive"}</span>
+      <span className="text-sm text-slate-600">
+        {enabled ? "Active" : "Inactive"}
+      </span>
       <Switch
         checked={enabled}
         onCheckedChange={(v) => toggle(!!v)}
