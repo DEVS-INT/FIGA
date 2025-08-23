@@ -81,29 +81,31 @@ export default function HomePage() {
                       {headWord}{" "}
                       <span>
                         {typed1}
-            {typed1.length < line1Rest.length ? (
+                        {typed1.length < line1Rest.length ? (
                           <span
                             aria-hidden
-              className="ml-1 inline-block w-0.5 h-[1em] bg-slate-900 align-middle animate-blink"
+                            className="ml-1 inline-block w-0.5 h-[1em] bg-slate-900 align-middle animate-blink"
                           />
                         ) : null}
                       </span>
                     </span>
                     <span className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent block animate-gradient">
                       {typed2}
-            {typed1.length === line1Rest.length && typed2.length < line2.length ? (
+                      {typed1.length === line1Rest.length &&
+                      typed2.length < line2.length ? (
                         <span
                           aria-hidden
-              className="ml-1 inline-block w-0.5 h-[1em] bg-blue-700 align-middle animate-blink"
+                          className="ml-1 inline-block w-0.5 h-[1em] bg-blue-700 align-middle animate-blink"
                         />
                       ) : null}
                       {/* Show blinking cursor at end after animation finishes */}
-            {typed1.length === line1Rest.length && typed2.length === line2.length && (
-                        <span
-                          aria-hidden
-              className="ml-1 inline-block w-0.5 h-[1em] bg-blue-700 align-middle animate-blink"
-                        />
-                      )}
+                      {typed1.length === line1Rest.length &&
+                        typed2.length === line2.length && (
+                          <span
+                            aria-hidden
+                            className="ml-1 inline-block w-0.5 h-[1em] bg-blue-700 align-middle animate-blink"
+                          />
+                        )}
                     </span>
                   </h1>
 

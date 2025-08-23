@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
 import { useSession, signIn } from "next-auth/react";
 
 interface HeaderProps {
@@ -433,16 +432,32 @@ function EmployeeActiveToggle() {
   if (!session || enabled === null) return null;
 
   return (
-    <div className="flex items-center gap-2 pr-2">
-      <span className="text-sm text-slate-600">
-        {enabled ? "Active" : "Inactive"}
-      </span>
-      <Switch
-        checked={enabled}
-        onCheckedChange={(v) => toggle(!!v)}
-        disabled={busy}
-        aria-label="Availability status"
+    <button
+      type="button"
+      onClick={() => toggle(!enabled)}
+      disabled={busy}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 pr-3 text-sm transition-colors",
+        enabled
+          ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
+          : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+        busy && "opacity-60 cursor-not-allowed"
+      )}
+      aria-pressed={!!enabled}
+      aria-label={enabled ? "Set status to inactive" : "Set status to active"}
+      title={
+        enabled
+          ? "Active - click to go Inactive"
+          : "Inactive - click to go Active"
+      }
+    >
+      <span
+        className={cn(
+          "h-2.5 w-2.5 rounded-full",
+          enabled ? "bg-green-500" : "bg-red-500"
+        )}
       />
-    </div>
+      <span className="font-medium">{enabled ? "Active" : "Inactive"}</span>
+    </button>
   );
 }
