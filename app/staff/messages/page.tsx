@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +9,14 @@ import { toast } from "react-hot-toast";
 import { StaffHeader } from "@/components/staff";
 
 export default function StaffMessages() {
+  const params = useSearchParams();
   const [form, setForm] = useState({ toEmail: "", subject: "", body: "" });
   const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    const to = params?.get("to") || "";
+    if (to) setForm((f) => ({ ...f, toEmail: to }));
+  }, [params]);
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +76,12 @@ export default function StaffMessages() {
                 required
               />
             </div>
-            <Button variant="brand" type="submit" disabled={sending} className="w-full">
+            <Button
+              variant="brand"
+              type="submit"
+              disabled={sending}
+              className="w-full"
+            >
               {sending ? "Sending…" : "Send Message"}
             </Button>
           </form>
