@@ -89,7 +89,7 @@ export default function PortfoliosVerify() {
       const byStatus = !r.is_verified; // only unverified
       const byTerm = !term
         ? true
-        : [r.user?.fullname, r.user?.email, r.phone_no, r.english_skill]
+        : [r.user?.fullname, r.user?.email, r.user?.phone, r.english_skill]
             .filter(Boolean)
             .some((s: string) => s.toLowerCase().includes(term));
       return byStatus && byTerm;
@@ -229,7 +229,7 @@ export default function PortfoliosVerify() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-muted-foreground">
-                  <div>Phone: {row.phone_no || "—"}</div>
+                  <div>Phone: {row.user?.phone || "—"}</div>
                   <div>English: {row.english_skill || "—"}</div>
                   <div>Experience: {row.experience_years ?? "—"} years</div>
                 </div>
@@ -328,7 +328,7 @@ export default function PortfoliosVerify() {
                   <div className="text-slate-500">Phone</div>
                   <div className="inline-flex items-center gap-2 font-medium">
                     <Phone className="h-4 w-4 text-blue-600" />{" "}
-                    {selected.phone_no || "—"}
+                    {selected.user?.phone || "—"}
                   </div>
                 </div>
                 <div className="space-y-1">

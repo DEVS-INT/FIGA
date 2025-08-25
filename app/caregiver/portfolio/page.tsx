@@ -31,7 +31,6 @@ import {
   HeartPulse,
   GraduationCap,
   SlidersHorizontal,
-  Phone,
   Hash,
   Languages,
   Loader2,
@@ -39,6 +38,14 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Schema mirrored from Portfolio table in Prisma schema
 const emptyToUndefined = z
@@ -50,7 +57,7 @@ const optionalText = z
 
 const portfolioSchema = z.object({
   sex: z.string().min(1, "Required"),
-  phone_no: z.string().min(7, "Enter a valid phone"),
+  // phone number is captured on the User at signup; not part of portfolio anymore
   age: z.coerce.number().int().min(16).max(100),
   certifications: optionalText.optional().nullable(),
   experience: optionalText.optional().nullable(),
@@ -68,6 +75,11 @@ const portfolioSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => (v === "" ? undefined : v ?? undefined)),
+  driving_details: optionalText.optional().nullable(),
+  authorized_to_work: optionalText.optional().nullable(),
+  currently_employed: optionalText.optional().nullable(),
+  reason_left_previous_job: optionalText.optional().nullable(),
+  job_type_preference: optionalText.optional().nullable(),
 });
 
 export type PortfolioFormData = z.infer<typeof portfolioSchema>;
@@ -90,12 +102,15 @@ export default function CaregiverPortfolioPage() {
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [draftState, setDraftState] = useState<"idle" | "saving" | "saved">(
+    "idle"
+  );
+  const saveTimeoutRef = useRef<number | null>(null);
 
   const form = useForm<PortfolioFormData>({
     resolver: zodResolver(portfolioSchema),
     defaultValues: {
       sex: "",
-      phone_no: "",
       age: undefined as unknown as number,
       certifications: "",
       experience: "",
@@ -109,16 +124,111 @@ export default function CaregiverPortfolioPage() {
       english_skill: "",
       us_living_years: undefined as unknown as number,
       profile_image: "",
+      driving_details: "",
+      authorized_to_work: "",
+      currently_employed: "",
+      reason_left_previous_job: "",
+      job_type_preference: "",
     },
     mode: "onBlur",
   });
+
+  // Google Form option sets
+  const sexOptions = ["Male", "Female"] as const;
+  const certificationOptions = [
+    "Tire1",
+    "Tire2",
+    "OIS",
+    "First Aid and CPR",
+    "HBS",
+  ];
+  const experienceOptions = [
+    "Less than 1 year",
+    "1 year",
+    "2 year",
+    "3 year",
+    "more than 3 years",
+    "No Experience",
+  ];
+  const dayOptions = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+  const shiftOptions = ["Day shift", "Night shift", "Weekends"];
+  const englishOptions = [
+    "Very Limited (Can speak a few basic words; relies on gestures or translation)",
+    "Basic Beginner (Can introduce self, say simple phrases (e.g., “My name is…”)",
+    "Basic Conversational (Can hold short conversations with frequent pauses)",
+    "Lower Intermediate (Understands and responds to common questions with effort)",
+    "Intermediate (Can discuss daily topics, ask and answer questions clearly",
+    "Upper Intermediate (Can express opinions, follow conversations, and clarify misunderstandings)",
+    "Advanced (Speaks fluently with few errors, understands complex instructions)",
+    "Near-Native (Fluent and confident in both formal and informal settings)",
+    "Native/Fluent (Equivalent to someone raised speaking English)",
+  ];
+  const reasonLeftOptions = [
+    "Uncomfortable caregiving setting",
+    "Low payment",
+    "Disagreement with the owner/provider",
+    "Interpersonal challenges with residents",
+    "Relocated to a different state or returned to home country",
+  ];
+  const jobTypeOptions = ["Full time", "Part time", "Any"];
+
+  // Helpers to manage CSV fields
+  const parseCsv = (v?: string | null) =>
+    (v || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  const toggleCsvValue = (field: keyof PortfolioFormData, value: string) => {
+    const cur = parseCsv(form.getValues(field as any) as any);
+    const has = cur.includes(value);
+    const next = has ? cur.filter((x) => x !== value) : [...cur, value];
+    form.setValue(field as any, next.join(","), { shouldDirty: true });
+  };
+
+  // Local UI states for optional "Other" inputs
+  const [showOtherCerts, setShowOtherCerts] = useState(false);
+  const [showOtherDays, setShowOtherDays] = useState(false);
+  const [showOtherShifts, setShowOtherShifts] = useState(false);
+  const [showOtherReasons, setShowOtherReasons] = useState(false);
+
+  // Small reusable Chip button
+  const Chip = ({
+    selected,
+    onClick,
+    children,
+  }: {
+    selected: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "px-3 py-1.5 rounded-full text-sm border transition-colors shadow-sm hover:shadow md:active:translate-y-px",
+        selected
+          ? "bg-blue-600 text-white border-blue-600"
+          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+      )}
+    >
+      {children}
+    </button>
+  );
 
   const stepIndex = steps.findIndex((s) => s.key === currentStep);
   const progress = ((stepIndex + 1) / steps.length) * 100;
 
   const next = async () => {
     const fieldsByStep: Record<StepKey, (keyof PortfolioFormData)[]> = {
-      basics: ["sex", "phone_no", "age", "english_skill"],
+      basics: ["sex", "age", "english_skill"],
       experience: [
         "experience",
         "state_where_experience_gained",
@@ -143,7 +253,7 @@ export default function CaregiverPortfolioPage() {
 
   const onSubmit = async (data: PortfolioFormData) => {
     try {
-      const res = await fetch("/api/caregiver/portfolio", {
+      const res = await fetch("/api/caregiver/portfolio?mode=full", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -153,6 +263,11 @@ export default function CaregiverPortfolioPage() {
         throw new Error(msg || "Failed to save portfolio");
       }
       toast.success("Portfolio submitted for verification");
+      try {
+        // Clear draft and notify header instantly
+        localStorage.removeItem("portfolioDraft");
+        window.dispatchEvent(new Event("portfolio:submitted"));
+      } catch {}
       router.push("/caregiver/dashboard");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Unexpected error");
@@ -169,6 +284,18 @@ export default function CaregiverPortfolioPage() {
           setPreviewUrl(null);
         }
       }
+      // autosave draft (debounced)
+      try {
+        setDraftState("saving");
+        if (saveTimeoutRef.current) window.clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = window.setTimeout(() => {
+          try {
+            localStorage.setItem("portfolioDraft", JSON.stringify(values));
+            setDraftState("saved");
+            window.setTimeout(() => setDraftState("idle"), 1500);
+          } catch {}
+        }, 500);
+      } catch {}
     });
     return () => sub.unsubscribe();
   }, [form]);
@@ -212,7 +339,6 @@ export default function CaregiverPortfolioPage() {
             setIsVerified(Boolean(p.is_verified));
             form.reset({
               sex: p.sex || "",
-              phone_no: p.phone_no || "",
               age:
                 typeof p.age === "number"
                   ? p.age
@@ -233,6 +359,11 @@ export default function CaregiverPortfolioPage() {
                   ? p.us_living_years
                   : (undefined as unknown as number),
               profile_image: p.profile_image || "",
+              driving_details: p.driving_details || "",
+              authorized_to_work: p.authorized_to_work || "",
+              currently_employed: p.currently_employed || "",
+              reason_left_previous_job: p.reason_left_previous_job || "",
+              job_type_preference: p.job_type_preference || "",
             });
           } else if (mounted) {
             // load draft from localStorage
@@ -347,6 +478,25 @@ export default function CaregiverPortfolioPage() {
                     </div>
                   ))}
                 </div>
+                <div className="mt-3 flex items-center justify-between text-xs text-slate-600">
+                  <span>
+                    Step {stepIndex + 1} of {steps.length}
+                  </span>
+                  {draftState !== "idle" && (
+                    <span className="flex items-center gap-1">
+                      {draftState === "saving" ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" /> Saving…
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-3 w-3 text-emerald-600" />{" "}
+                          Saved
+                        </>
+                      )}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {isVerified !== null && (
@@ -411,7 +561,10 @@ export default function CaregiverPortfolioPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 space-y-2">
-                            <Label htmlFor="profile_image">
+                            <Label
+                              htmlFor="profile_image"
+                              className="block mb-1.5"
+                            >
                               Profile Image URL (optional)
                             </Label>
                             <div className="flex gap-2">
@@ -465,39 +618,29 @@ export default function CaregiverPortfolioPage() {
                         </div>
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="sex">
+                      <div className="grid md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <Label className="block mb-1.5">
                             Sex <RequiredMark />
                           </Label>
-                          <div className="relative">
-                            <Input
-                              id="sex"
-                              {...form.register("sex")}
-                              placeholder="Male / Female"
-                              className="pl-9"
-                            />
-                            <HeartPulse className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                          <div className="flex gap-2 mt-2">
+                            {sexOptions.map((o) => (
+                              <Chip
+                                key={o}
+                                selected={form.watch("sex") === o}
+                                onClick={() =>
+                                  form.setValue("sex", o, { shouldDirty: true })
+                                }
+                              >
+                                {o}
+                              </Chip>
+                            ))}
                           </div>
                           <FieldError name="sex" />
                         </div>
-                        <div>
-                          <Label htmlFor="phone_no">
-                            Phone Number <RequiredMark />
-                          </Label>
-                          <div className="relative">
-                            <Input
-                              id="phone_no"
-                              {...form.register("phone_no")}
-                              placeholder="(555) 555-1234"
-                              className="pl-9"
-                            />
-                            <Phone className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                          </div>
-                          <FieldError name="phone_no" />
-                        </div>
-                        <div>
-                          <Label htmlFor="age">
+                        {/* Phone is captured at signup now */}
+                        <div className="space-y-2">
+                          <Label htmlFor="age" className="block mb-1.5">
                             Age <RequiredMark />
                           </Label>
                           <div className="relative">
@@ -511,17 +654,33 @@ export default function CaregiverPortfolioPage() {
                           </div>
                           <FieldError name="age" />
                         </div>
-                        <div>
-                          <Label htmlFor="english_skill">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="english_skill"
+                            className="block mb-1.5"
+                          >
                             English Skill <RequiredMark />
                           </Label>
                           <div className="relative">
-                            <Input
-                              id="english_skill"
-                              {...form.register("english_skill")}
-                              placeholder="Basic / Fluent"
-                              className="pl-9"
-                            />
+                            <Select
+                              onValueChange={(v) =>
+                                form.setValue("english_skill", v, {
+                                  shouldDirty: true,
+                                })
+                              }
+                              value={form.watch("english_skill")}
+                            >
+                              <SelectTrigger className="pl-9">
+                                <SelectValue placeholder="Select level" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {englishOptions.map((o) => (
+                                  <SelectItem key={o} value={o}>
+                                    {o}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <Languages className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                           </div>
                           <FieldError name="english_skill" />
@@ -531,25 +690,39 @@ export default function CaregiverPortfolioPage() {
                   )}
 
                   {stepIndex === 1 && (
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <ClipboardList className="h-5 w-5 text-green-600" />{" "}
                         Experience Details
                       </h3>
-                      <div>
-                        <Label htmlFor="experience">Experience</Label>
-                        <Textarea
-                          id="experience"
-                          {...form.register("experience")}
-                          placeholder="Describe your caregiving experience"
-                        />
-                        <p className="text-xs text-slate-500 mt-1">
-                          Share years, specialties (e.g., dementia care), and
-                          key responsibilities.
+                      <div className="space-y-2">
+                        <Label className="block mb-1.5">
+                          Experience (years)
+                        </Label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {experienceOptions.map((o) => (
+                            <Chip
+                              key={o}
+                              selected={form.watch("experience") === o}
+                              onClick={() =>
+                                form.setValue("experience", o, {
+                                  shouldDirty: true,
+                                })
+                              }
+                            >
+                              {o}
+                            </Chip>
+                          ))}
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          Pick the closest match—no need to be exact.
                         </p>
                       </div>
-                      <div>
-                        <Label htmlFor="state_where_experience_gained">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="state_where_experience_gained"
+                          className="block mb-1.5"
+                        >
                           State where experience gained
                         </Label>
                         <Input
@@ -557,29 +730,110 @@ export default function CaregiverPortfolioPage() {
                           {...form.register("state_where_experience_gained")}
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="certifications">Certifications</Label>
-                        <Textarea
-                          id="certifications"
-                          {...form.register("certifications")}
-                          placeholder="List certifications (if any)"
-                        />
-                        <p className="text-xs text-slate-500 mt-1">
-                          Comma-separated. Example: CNA, First Aid/CPR, OIS.
+                      <div className="space-y-2">
+                        <Label className="block mb-1.5">
+                          What certifications or trainings do you have?
+                        </Label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {certificationOptions.map((o) => {
+                            const selected = parseCsv(
+                              form.watch("certifications")
+                            ).includes(o);
+                            return (
+                              <Chip
+                                key={o}
+                                selected={selected}
+                                onClick={() =>
+                                  toggleCsvValue("certifications", o)
+                                }
+                              >
+                                {o}
+                              </Chip>
+                            );
+                          })}
+                          <Chip
+                            selected={showOtherCerts}
+                            onClick={() => setShowOtherCerts((s) => !s)}
+                          >
+                            + Other
+                          </Chip>
+                        </div>
+                        {showOtherCerts && (
+                          <div className="mt-2">
+                            <Input
+                              placeholder="Other (comma-separated)"
+                              value={(() => {
+                                const cur = parseCsv(
+                                  form.watch("certifications")
+                                );
+                                const known = new Set(certificationOptions);
+                                const others = cur.filter(
+                                  (x) => !known.has(x as any)
+                                );
+                                return others.join(", ");
+                              })()}
+                              onChange={(e) => {
+                                const cur = new Set(
+                                  parseCsv(form.watch("certifications"))
+                                );
+                                certificationOptions.forEach((o) =>
+                                  cur.delete(o)
+                                );
+                                e.target.value
+                                  .split(",")
+                                  .map((s) => s.trim())
+                                  .filter(Boolean)
+                                  .forEach((v) => cur.add(v));
+                                form.setValue(
+                                  "certifications",
+                                  Array.from(cur).join(","),
+                                  { shouldDirty: true }
+                                );
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="block mb-1.5">
+                          Do you have a valid driver’s license?
+                        </Label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {["Yes", "No"].map((o) => (
+                            <Chip
+                              key={o}
+                              selected={
+                                (form.watch("driving_details") || "") === o
+                              }
+                              onClick={() =>
+                                form.setValue("driving_details", o, {
+                                  shouldDirty: true,
+                                })
+                              }
+                            >
+                              {o}
+                            </Chip>
+                          ))}
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          Tap “+ Other” to add anything not listed.
                         </p>
                       </div>
                     </div>
                   )}
 
                   {stepIndex === 2 && (
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <GraduationCap className="h-5 w-5 text-purple-600" />{" "}
                         Education
                       </h3>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="university_college">
+                      <div className="grid md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="university_college"
+                            className="block mb-1.5"
+                          >
                             University/College
                           </Label>
                           <Input
@@ -587,15 +841,19 @@ export default function CaregiverPortfolioPage() {
                             {...form.register("university_college")}
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="study_field">Field of Study</Label>
+                        <div className="space-y-2">
+                          <Label htmlFor="study_field" className="block mb-1.5">
+                            Field of Study
+                          </Label>
                           <Input
                             id="study_field"
                             {...form.register("study_field")}
                           />
                         </div>
-                        <div className="md:col-span-2">
-                          <Label htmlFor="degree">Degree</Label>
+                        <div className="md:col-span-2 space-y-2">
+                          <Label htmlFor="degree" className="block mb-1.5">
+                            Degree
+                          </Label>
                           <Input id="degree" {...form.register("degree")} />
                         </div>
                       </div>
@@ -608,36 +866,274 @@ export default function CaregiverPortfolioPage() {
                         <SlidersHorizontal className="h-5 w-5 text-orange-600" />{" "}
                         Preferences
                       </h3>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="suitable_work_days">
-                            Suitable Work Days
+                      <div className="grid md:grid-cols-2 gap-5">
+                        <div className="md:col-span-2 space-y-2">
+                          <Label className="block mb-1.5">
+                            Which days are you available to work?
                           </Label>
-                          <Input
-                            id="suitable_work_days"
-                            {...form.register("suitable_work_days")}
-                            placeholder="e.g. Mon-Fri"
-                          />
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {dayOptions.map((d) => {
+                              const selected = parseCsv(
+                                form.watch("suitable_work_days")
+                              ).includes(d);
+                              return (
+                                <Chip
+                                  key={d}
+                                  selected={selected}
+                                  onClick={() =>
+                                    toggleCsvValue("suitable_work_days", d)
+                                  }
+                                >
+                                  {d}
+                                </Chip>
+                              );
+                            })}
+                            <Chip
+                              selected={showOtherDays}
+                              onClick={() => setShowOtherDays((s) => !s)}
+                            >
+                              + Other
+                            </Chip>
+                          </div>
+                          {showOtherDays && (
+                            <div className="mt-2">
+                              <Input
+                                placeholder="Other day(s) (comma-separated)"
+                                onChange={(e) => {
+                                  const days = new Set(
+                                    parseCsv(form.watch("suitable_work_days"))
+                                  );
+                                  dayOptions.forEach((o) => days.delete(o));
+                                  e.target.value
+                                    .split(",")
+                                    .map((s) => s.trim())
+                                    .filter(Boolean)
+                                    .forEach((v) => days.add(v));
+                                  form.setValue(
+                                    "suitable_work_days",
+                                    Array.from(days).join(","),
+                                    { shouldDirty: true }
+                                  );
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <Label htmlFor="suitable_work_shift">
-                            Suitable Work Shift
+                        <div className="md:col-span-2 space-y-2">
+                          <Label className="block mb-1.5">
+                            Which shifts are you available to work?
                           </Label>
-                          <Input
-                            id="suitable_work_shift"
-                            {...form.register("suitable_work_shift")}
-                            placeholder="e.g. Night shift"
-                          />
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {shiftOptions.map((s) => {
+                              const selected = parseCsv(
+                                form.watch("suitable_work_shift")
+                              ).includes(s);
+                              return (
+                                <Chip
+                                  key={s}
+                                  selected={selected}
+                                  onClick={() =>
+                                    toggleCsvValue("suitable_work_shift", s)
+                                  }
+                                >
+                                  {s}
+                                </Chip>
+                              );
+                            })}
+                            <Chip
+                              selected={showOtherShifts}
+                              onClick={() => setShowOtherShifts((s) => !s)}
+                            >
+                              + Other
+                            </Chip>
+                          </div>
+                          {showOtherShifts && (
+                            <div className="mt-2">
+                              <Input
+                                placeholder="Other shift(s) (comma-separated)"
+                                onChange={(e) => {
+                                  const shifts = new Set(
+                                    parseCsv(form.watch("suitable_work_shift"))
+                                  );
+                                  shiftOptions.forEach((o) => shifts.delete(o));
+                                  e.target.value
+                                    .split(",")
+                                    .map((s) => s.trim())
+                                    .filter(Boolean)
+                                    .forEach((v) => shifts.add(v));
+                                  form.setValue(
+                                    "suitable_work_shift",
+                                    Array.from(shifts).join(","),
+                                    { shouldDirty: true }
+                                  );
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
-                        <div className="md:col-span-2">
-                          <Label htmlFor="comfortability">Comfortability</Label>
-                          <Textarea
-                            id="comfortability"
-                            {...form.register("comfortability")}
-                            placeholder="What tasks are you comfortable with?"
-                          />
+                        <div className="md:col-span-2 space-y-2">
+                          <Label
+                            htmlFor="comfortability"
+                            className="block mb-1.5"
+                          >
+                            Are you comfortable assisting with personal care
+                            (e.g., showering, toileting, feeding)?
+                          </Label>
+                          <Select
+                            onValueChange={(v) =>
+                              form.setValue("comfortability", v, {
+                                shouldDirty: true,
+                              })
+                            }
+                            value={form.watch("comfortability")}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Yes or No" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Yes">Yes</SelectItem>
+                              <SelectItem value="No">No</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FieldError name="comfortability" />
                         </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="authorized_to_work"
+                            className="block mb-1.5"
+                          >
+                            Are you legally authorized to work in the U.S. and
+                            able to be on payroll?
+                          </Label>
+                          <Select
+                            onValueChange={(v) =>
+                              form.setValue("authorized_to_work", v, {
+                                shouldDirty: true,
+                              })
+                            }
+                            value={form.watch("authorized_to_work") || ""}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Yes or No" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Yes">Yes</SelectItem>
+                              <SelectItem value="No">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="currently_employed"
+                            className="block mb-1.5"
+                          >
+                            Are you currently employed?
+                          </Label>
+                          <Select
+                            onValueChange={(v) =>
+                              form.setValue("currently_employed", v, {
+                                shouldDirty: true,
+                              })
+                            }
+                            value={form.watch("currently_employed") || ""}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Yes or No" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Yes">Yes</SelectItem>
+                              <SelectItem value="No">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {form.watch("currently_employed") === "No" && (
+                          <div className="md:col-span-2 space-y-2">
+                            <Label className="block mb-1.5">
+                              If you are not currently employed, why did you
+                              leave your previous job?
+                            </Label>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {reasonLeftOptions.map((r) => {
+                                const selected = parseCsv(
+                                  form.watch("reason_left_previous_job")
+                                ).includes(r);
+                                return (
+                                  <Chip
+                                    key={r}
+                                    selected={selected}
+                                    onClick={() =>
+                                      toggleCsvValue(
+                                        "reason_left_previous_job",
+                                        r
+                                      )
+                                    }
+                                  >
+                                    {r}
+                                  </Chip>
+                                );
+                              })}
+                              <Chip
+                                selected={showOtherReasons}
+                                onClick={() => setShowOtherReasons((s) => !s)}
+                              >
+                                + Other
+                              </Chip>
+                            </div>
+                            {showOtherReasons && (
+                              <div className="mt-2">
+                                <Input
+                                  placeholder="Other reason(s) (comma-separated)"
+                                  onChange={(e) => {
+                                    const cur = new Set(
+                                      parseCsv(
+                                        form.watch("reason_left_previous_job")
+                                      )
+                                    );
+                                    reasonLeftOptions.forEach((o) =>
+                                      cur.delete(o)
+                                    );
+                                    e.target.value
+                                      .split(",")
+                                      .map((s) => s.trim())
+                                      .filter(Boolean)
+                                      .forEach((v) => cur.add(v));
+                                    form.setValue(
+                                      "reason_left_previous_job",
+                                      Array.from(cur).join(","),
+                                      { shouldDirty: true }
+                                    );
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <Label className="block mb-1.5">
+                            Are you looking for part-time, full-time, etc.,
+                            work?
+                          </Label>
+                          <Select
+                            onValueChange={(v) =>
+                              form.setValue("job_type_preference", v, {
+                                shouldDirty: true,
+                              })
+                            }
+                            value={form.watch("job_type_preference") || ""}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {jobTypeOptions.map((o) => (
+                                <SelectItem key={o} value={o}>
+                                  {o}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {/* Redundant raw inputs removed in favor of selects/chips above */}
                       </div>
                     </div>
                   )}
@@ -658,12 +1154,7 @@ export default function CaregiverPortfolioPage() {
                                   {v.sex || "—"}
                                 </div>
                               </div>
-                              <div className="rounded-lg border p-3 bg-slate-50">
-                                <div className="text-slate-500">Phone</div>
-                                <div className="font-medium">
-                                  {v.phone_no || "—"}
-                                </div>
-                              </div>
+                              {/* Phone is stored on your account; omitted from portfolio review */}
                               <div className="rounded-lg border p-3 bg-slate-50">
                                 <div className="text-slate-500">Age</div>
                                 <div className="font-medium">
@@ -740,6 +1231,46 @@ export default function CaregiverPortfolioPage() {
                                   {v.comfortability || "—"}
                                 </div>
                               </div>
+                              <div className="rounded-lg border p-3 bg-slate-50 md:col-span-2">
+                                <div className="text-slate-500">
+                                  Driving and License
+                                </div>
+                                <div className="font-medium whitespace-pre-wrap">
+                                  {v.driving_details || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">
+                                  Authorized to Work
+                                </div>
+                                <div className="font-medium">
+                                  {v.authorized_to_work || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">
+                                  Currently Employed
+                                </div>
+                                <div className="font-medium">
+                                  {v.currently_employed || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50 md:col-span-2">
+                                <div className="text-slate-500">
+                                  Reason Left Previous Job
+                                </div>
+                                <div className="font-medium whitespace-pre-wrap">
+                                  {v.reason_left_previous_job || "—"}
+                                </div>
+                              </div>
+                              <div className="rounded-lg border p-3 bg-slate-50">
+                                <div className="text-slate-500">
+                                  Job Type Preference
+                                </div>
+                                <div className="font-medium">
+                                  {v.job_type_preference || "—"}
+                                </div>
+                              </div>
                             </>
                           );
                         })()}
@@ -768,6 +1299,21 @@ export default function CaregiverPortfolioPage() {
                         >
                           Back
                         </Button>
+                      )}
+                      {draftState !== "idle" && (
+                        <span className="ml-3 inline-flex items-center gap-1 text-xs text-slate-600">
+                          {draftState === "saving" ? (
+                            <>
+                              <Loader2 className="h-3 w-3 animate-spin" />{" "}
+                              Saving…
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />{" "}
+                              Saved
+                            </>
+                          )}
+                        </span>
                       )}
                     </div>
                     <div className="flex gap-3">

@@ -25,19 +25,76 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const url = new URL(req.url);
+    const mode = url.searchParams.get("mode");
     const body = await req.json();
+
+    // Define updatable columns from Portfolio schema
+    const keys: Array<keyof typeof body> = [
+      "sex",
+      "age",
+      "certifications",
+      "experience",
+      "state_where_experience_gained",
+      "suitable_work_days",
+      "suitable_work_shift",
+      "comfortability",
+      "university_college",
+      "study_field",
+      "degree",
+      "english_skill",
+      "us_living_years",
+      "driving_details",
+      "authorized_to_work",
+      "currently_employed",
+      "reason_left_previous_job",
+      "job_type_preference",
+      "profile_image",
+    ];
+
+    // Build data object
+    let data: Record<string, any> = {};
+    if (mode === "full") {
+      // Overwrite every field (missing -> null)
+      for (const k of keys) {
+        const v = body[k as string];
+        if (k === "age" || k === "us_living_years") {
+          data[k as string] = typeof v === "number" ? v : v == null ? null : Number(v) || null;
+        } else {
+          data[k as string] = v === undefined ? null : v;
+        }
+      }
+    } else {
+      // Partial update: only provided keys
+      for (const k of keys) {
+        if (Object.prototype.hasOwnProperty.call(body, k)) {
+          const v = body[k as string];
+          if (k === "age" || k === "us_living_years") {
+            data[k as string] = typeof v === "number" ? v : v == null ? null : Number(v) || null;
+          } else {
+            data[k as string] = v;
+          }
+        }
+      }
+    }
 
     // Emulate upsert by user_id (not unique) safely
     const existing = await prisma.portfolio.findFirst({ where: { user_id: session.user.id } });
+    if (!existing && mode !== "full") {
+      return NextResponse.json(
+        { error: "Portfolio not created yet. Submit full portfolio first." },
+        { status: 400 }
+      );
+    }
     let portfolio;
     if (existing) {
       portfolio = await prisma.portfolio.update({
         where: { id: existing.id },
-        data: { ...body },
+        data,
       });
     } else {
       portfolio = await prisma.portfolio.create({
-        data: { ...body, user_id: session.user.id },
+        data: ({ ...data, user_id: session.user.id } as any),
       });
     }
 

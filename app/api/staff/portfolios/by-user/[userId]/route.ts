@@ -17,7 +17,7 @@ export async function GET(req: Request, ctx: { params: { userId: string } }) {
   const userId = ctx.params.userId;
   const portfolio = await prisma.portfolio.findFirst({
     where: { user_id: userId },
-    include: { user: { select: { fullname: true, email: true } } }
+    include: { user: { select: { fullname: true, email: true, phone: true } } }
   });
   if (!portfolio) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 });
   return NextResponse.json({ portfolio });

@@ -20,6 +20,7 @@ import {
   Heart,
   User,
   Briefcase,
+  Phone,
   Home as HomeIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -33,6 +34,10 @@ const formSchema = z
   .object({
     fullname: z.string().min(2, "Full name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
+    phone: z
+      .string()
+      .min(7, "Enter a valid phone number")
+      .max(20, "Phone seems too long"),
     role: z.enum(["EMPLOYER", "EMPLOYEE"], {
       required_error: "Role is required",
     }),
@@ -62,6 +67,7 @@ export default function SignUpPage() {
     defaultValues: {
       fullname: "",
       email: "",
+      phone: "",
       role: "EMPLOYEE",
       password: "",
       confirmPassword: "",
@@ -267,6 +273,30 @@ export default function SignUpPage() {
                           />
                         </FormControl>
                         <FormMessage className="text-red-500 text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Phone (moved below Email) */}
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700">
+                          Phone Number
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              placeholder="(555) 555-1234"
+                              {...field}
+                              className="pl-9"
+                            />
+                            <Phone className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />

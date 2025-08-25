@@ -14,6 +14,6 @@ export async function GET() {
   const guard = staffGuard(session);
   if (guard) return guard;
 
-  const portfolios = await prisma.portfolio.findMany({ include: { user: { select: { fullname: true, email: true } } } });
+  const portfolios = await prisma.portfolio.findMany({ include: { user: { select: { fullname: true, email: true, phone: true } } } });
   return NextResponse.json({ portfolios });
 }

@@ -582,7 +582,7 @@ export default function EmployerMessagesPage() {
                           <div className="text-slate-500">Phone</div>
                           <div className="inline-flex items-center gap-2 font-medium">
                             <Phone className="h-4 w-4 text-blue-600" />{" "}
-                            {p.phone_no || "—"}
+                            {c.employee?.phone || "—"}
                           </div>
                         </div>
                         <div className="space-y-1">
