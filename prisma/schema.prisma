@@ -28,6 +28,7 @@ model User {
   email                         String               @unique
   password                      String
   role                          Role
+  phone                         String?
   is_active                     Boolean              @default(true)
   created_at                    DateTime             @default(now())
   updated_at                    DateTime             @updatedAt
@@ -113,7 +114,6 @@ model Portfolio {
   id                            Int       @id @default(autoincrement())
   user_id                       String
   sex                           String
-  phone_no                      String
   age                           Int
   certifications                String? // nullable if not everyone has certifications
   experience                    String?
@@ -126,6 +126,11 @@ model Portfolio {
   degree                        String?
   english_skill                 String
   us_living_years               Int?
+  driving_details               String?
+  authorized_to_work            String?
+  currently_employed            String?
+  reason_left_previous_job      String?
+  job_type_preference           String?
   is_verified                   Boolean   @default(false)
   verified_by                   String?
   verified_at                   DateTime?

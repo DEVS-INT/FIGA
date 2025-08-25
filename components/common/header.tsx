@@ -5,7 +5,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FigaLogo } from "@/components/figa-logo";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  CalendarDays,
+  Check,
+  Clock,
+  ClipboardList,
+} from "lucide-react";
+import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -15,6 +23,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession, signIn } from "next-auth/react";
 
@@ -166,7 +182,7 @@ export function Header({ variant = "default" }: HeaderProps) {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {isAuthenticated && isEmployee && <EmployeeActiveToggle />}
+            {isAuthenticated && isEmployee && <EmployeeHeaderAction />}
             {isAuthenticated ? (
               // Only show avatar for EMPLOYER role
               isEmployer ? (
@@ -388,76 +404,314 @@ export function Header({ variant = "default" }: HeaderProps) {
   );
 }
 
-function EmployeeActiveToggle() {
-  const { data: session } = useSession();
-  const [enabled, setEnabled] = useState<boolean | null>(null);
-  const [busy, setBusy] = useState(false);
+function EmployeeHeaderAction() {
+  const [loading, setLoading] = React.useState(true);
+  const [hasPortfolio, setHasPortfolio] = React.useState<boolean | null>(null);
+  const pathname = usePathname();
 
-  // fetch current status
   React.useEffect(() => {
     let alive = true;
-    const run = async () => {
+    (async () => {
       try {
-        const res = await fetch("/api/caregiver/status", { cache: "no-store" });
-        if (!res.ok) return;
+        const res = await fetch("/api/caregiver/portfolio", {
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error("Failed to load");
         const json = await res.json();
-        if (alive) setEnabled(!!json.is_active);
-      } catch {}
-    };
-    run();
+        if (!alive) return;
+        setHasPortfolio(Boolean(json?.portfolio));
+      } catch {
+        if (!alive) return;
+        setHasPortfolio(false);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
     return () => {
       alive = false;
     };
+  }, [pathname]);
+
+  // React to immediate submit without reload
+  React.useEffect(() => {
+    const onSubmitted = () => setHasPortfolio(true);
+    const onFocus = () => {
+      // Re-validate on focus
+      fetch("/api/caregiver/portfolio", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => {
+          if (j) setHasPortfolio(Boolean(j?.portfolio));
+        })
+        .catch(() => {});
+    };
+    window.addEventListener(
+      "portfolio:submitted",
+      onSubmitted as EventListener
+    );
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener(
+        "portfolio:submitted",
+        onSubmitted as EventListener
+      );
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
 
-  const toggle = async (next: boolean) => {
-    if (enabled === null) return;
-    setEnabled(next);
-    setBusy(true);
+  if (loading) {
+    return (
+      <Button
+        variant="outline"
+        className="border-slate-200 text-slate-500"
+        disabled
+      >
+        <span className="inline-block h-4 w-20 bg-slate-200 rounded animate-pulse" />
+      </Button>
+    );
+  }
+
+  if (hasPortfolio) {
+    return <EmployeeAvailabilityButton />;
+  }
+
+  return (
+    <Link href="/caregiver/portfolio">
+      <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow">
+        <ClipboardList className="h-4 w-4 mr-2" /> Portfolio
+      </Button>
+    </Link>
+  );
+}
+
+function EmployeeAvailabilityButton() {
+  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [days, setDays] = useState<Set<string>>(new Set());
+  const [shifts, setShifts] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+
+  const dayOptions = [
+    { value: "Monday", short: "Mon" },
+    { value: "Tuesday", short: "Tue" },
+    { value: "Wednesday", short: "Wed" },
+    { value: "Thursday", short: "Thu" },
+    { value: "Friday", short: "Fri" },
+    { value: "Saturday", short: "Sat" },
+    { value: "Sunday", short: "Sun" },
+  ];
+
+  const dayCanonicalMap: Record<string, string> = {
+    monday: "Monday",
+    mon: "Monday",
+    tuesday: "Tuesday",
+    tue: "Tuesday",
+    tues: "Tuesday",
+    wednesday: "Wednesday",
+    wed: "Wednesday",
+    thursday: "Thursday",
+    thu: "Thursday",
+    thurs: "Thursday",
+    friday: "Friday",
+    fri: "Friday",
+    saturday: "Saturday",
+    sat: "Saturday",
+    sunday: "Sunday",
+    sun: "Sunday",
+  };
+
+  const canonicalizeDay = (s: string) =>
+    dayCanonicalMap[s.trim().toLowerCase()] || s.trim();
+
+  const fetchAvailability = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch("/api/caregiver/status", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: next }),
+      const res = await fetch("/api/caregiver/portfolio", {
+        cache: "no-store",
       });
-      if (!res.ok) throw new Error("Failed to update");
-    } catch {
-      // revert on failure
-      setEnabled(!next);
+      if (!res.ok) throw new Error("Failed to load availability");
+      const json = await res.json();
+      const existing: string = json?.portfolio?.suitable_work_days || "";
+      const parsed = existing
+        .split(",")
+        .map((s: string) => canonicalizeDay(s))
+        .filter(Boolean);
+      setDays(new Set(parsed));
+
+      const existingShift: string = json?.portfolio?.suitable_work_shift || "";
+      const parsedShift = existingShift
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+      setShifts(new Set(parsedShift));
+    } catch (e: any) {
+      setError(e?.message || "Failed to load");
     } finally {
-      setBusy(false);
+      setLoading(false);
     }
   };
 
-  if (!session || enabled === null) return null;
+  const toggleDay = (value: string) => {
+    setDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
+    });
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const suitable_work_days = Array.from(days).join(",");
+      const suitable_work_shift = Array.from(shifts).join(",");
+      const res = await fetch("/api/caregiver/portfolio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ suitable_work_days, suitable_work_shift }),
+      });
+      if (!res.ok) throw new Error("Failed to save availability");
+      setOpen(false);
+      toast.success("Availability updated");
+    } catch (e: any) {
+      setError(e?.message || "Failed to save");
+      toast.error(e?.message || "Failed to save availability");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!session) return null;
 
   return (
-    <button
-      type="button"
-      onClick={() => toggle(!enabled)}
-      disabled={busy}
-      className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 pr-3 text-sm transition-colors",
-        enabled
-          ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
-          : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
-        busy && "opacity-60 cursor-not-allowed"
-      )}
-      aria-pressed={!!enabled}
-      aria-label={enabled ? "Set status to inactive" : "Set status to active"}
-      title={
-        enabled
-          ? "Active - click to go Inactive"
-          : "Inactive - click to go Active"
-      }
-    >
-      <span
-        className={cn(
-          "h-2.5 w-2.5 rounded-full",
-          enabled ? "bg-green-500" : "bg-red-500"
-        )}
-      />
-      <span className="font-medium">{enabled ? "Active" : "Inactive"}</span>
-    </button>
+    <>
+      <Button
+        variant="outline"
+        className="border-blue-200 text-blue-700 hover:bg-blue-50"
+        onClick={() => {
+          setOpen(true);
+          fetchAvailability();
+        }}
+      >
+        <CalendarDays className="h-4 w-4 mr-2" /> Availability
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white shadow">
+                <CalendarDays className="h-5 w-5" />
+              </span>
+              Set your availability
+            </DialogTitle>
+            <DialogDescription>
+              Choose the days of the week you are available to work. This helps
+              employers find you.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-2 space-y-4">
+            {loading ? (
+              <div className="text-slate-500">Loading…</div>
+            ) : (
+              <>
+                <div>
+                  <div className="mb-2 text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-blue-600" />
+                    Days of the week
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {dayOptions.map((d) => {
+                      const selected = days.has(d.value);
+                      return (
+                        <button
+                          key={d.value}
+                          type="button"
+                          onClick={() => toggleDay(d.value)}
+                          className={cn(
+                            "flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors",
+                            selected
+                              ? "border-blue-300 bg-blue-50 text-blue-700"
+                              : "border-slate-200 bg-white hover:bg-slate-50"
+                          )}
+                        >
+                          <span className="font-medium">{d.short}</span>
+                          {selected && (
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white">
+                              <Check className="h-3.5 w-3.5" />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-2 mt-4 text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-600" />
+                    Preferred shifts
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {["Day shift", "Night shift", "Weekends"].map((label) => {
+                      const selected = shifts.has(label);
+                      return (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() =>
+                            setShifts((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(label)) next.delete(label);
+                              else next.add(label);
+                              return next;
+                            })
+                          }
+                          className={cn(
+                            "flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors",
+                            selected
+                              ? "border-blue-300 bg-blue-50 text-blue-700"
+                              : "border-slate-200 bg-white hover:bg-slate-50"
+                          )}
+                        >
+                          <span className="font-medium">{label}</span>
+                          {selected && (
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white">
+                              <Check className="h-3.5 w-3.5" />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {error && <div className="text-sm text-red-600">{error}</div>}
+          </div>
+
+          <DialogFooter className="mt-2">
+            <Button
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={save}
+              disabled={saving || loading}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+            >
+              {saving ? "Saving…" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

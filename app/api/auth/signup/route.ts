@@ -44,7 +44,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { fullname, email, password, role } = await request.json();
+  const { fullname, email, phone, password, role } = await request.json();
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -59,10 +59,11 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
+  await prisma.user.create({
       data: {
         fullname,
         email,
+    phone,
         password: hashedPassword,
         role: role || 'EMPLOYEE', 
       },

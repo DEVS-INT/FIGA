@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
     include: {
       application: {
         include: {
-          employee: { select: { id: true, fullname: true, email: true } },
+          employee: { select: { id: true, fullname: true, email: true, phone: true } },
           portfolio: true,
         },
       },
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
     const apps = await prisma.application.findMany({
       where: { id: { in: filterIds }, job_id: jobId },
       include: {
-        employee: { select: { id: true, fullname: true, email: true } },
+  employee: { select: { id: true, fullname: true, email: true, phone: true } },
         portfolio: true,
       },
     });
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
     const apps = await prisma.application.findMany({
       where: { id: { in: ids }, job_id: jobId },
       include: {
-        employee: { select: { id: true, fullname: true, email: true } },
+  employee: { select: { id: true, fullname: true, email: true, phone: true } },
         portfolio: true,
       },
       orderBy: { applied_at: "desc" },
@@ -108,7 +108,7 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
   const allApps = await prisma.application.findMany({
     where: { job_id: jobId },
     include: {
-      employee: { select: { id: true, fullname: true, email: true } },
+      employee: { select: { id: true, fullname: true, email: true, phone: true } },
       portfolio: true,
     },
     orderBy: { applied_at: "desc" },

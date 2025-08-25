@@ -30,6 +30,7 @@ export async function GET() {
           id: true,
           fullname: true,
           email: true,
+          phone: true,
           created_at: true,
         },
       }),
@@ -52,7 +53,7 @@ export async function GET() {
     const mappedUser = {
       name: user.fullname,
       email: user.email,
-      phone: portfolio?.phone_no || "",
+      phone: user.phone || "",
       location: portfolio?.state_where_experience_gained || "",
       profileImage: portfolio?.profile_image || "",
       joinDate: user.created_at.toISOString().split("T")[0],
