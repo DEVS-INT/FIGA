@@ -11,7 +11,9 @@ export default function StaffLayout({
       <aside className="hidden md:block">
         <Sidebar variant="staff" />
       </aside>
-      <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+      <main className="flex-1 overflow-x-hidden pl-4 md:pl-6 lg:pl-8 pr-4 md:pr-6 lg:pr-8 py-4 md:py-6 lg:py-8">
+        {children}
+      </main>
     </div>
   );
 }

@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
   const cert = (searchParams.get("cert") || "").trim();
   const day = (searchParams.get("day") || "any").trim().toLowerCase();
   const sex = (searchParams.get("sex") || "any").trim().toLowerCase();
+  const shift = (searchParams.get("shift") || "any").trim().toLowerCase();
   const minAgeRaw = searchParams.get("minAge");
   const maxAgeRaw = searchParams.get("maxAge");
   const minAge = minAgeRaw ? parseInt(minAgeRaw, 10) : NaN;
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
       where.OR = [
         { fullname: { contains: q, mode: "insensitive" } },
         { email: { contains: q, mode: "insensitive" } },
+  { phone: { contains: q, mode: "insensitive" } },
       ];
     }
     if (status === "active") where.is_active = true;
@@ -38,7 +40,8 @@ export async function GET(req: NextRequest) {
     // Portfolio-based filters
     const otherPortfolioFilters: any[] = [];
     if (cert) otherPortfolioFilters.push({ certifications: { contains: cert, mode: "insensitive" } });
-    if (day && day !== "any") otherPortfolioFilters.push({ suitable_work_days: { contains: day, mode: "insensitive" } });
+  if (day && day !== "any") otherPortfolioFilters.push({ suitable_work_days: { contains: day, mode: "insensitive" } });
+  if (shift && shift !== "any") otherPortfolioFilters.push({ suitable_work_shift: { contains: shift, mode: "insensitive" } });
     if (sex && sex !== "any") otherPortfolioFilters.push({ sex: { equals: sex, mode: "insensitive" } });
     if (!Number.isNaN(minAge)) otherPortfolioFilters.push({ age: { gte: minAge } });
     if (!Number.isNaN(maxAge)) otherPortfolioFilters.push({ age: { lte: maxAge } });
@@ -73,7 +76,7 @@ export async function GET(req: NextRequest) {
           Portfolio: {
             orderBy: { created_at: "desc" },
             take: 1,
-      select: { certifications: true, suitable_work_days: true, age: true, sex: true, is_verified: true },
+      select: { certifications: true, suitable_work_days: true, suitable_work_shift: true, age: true, sex: true, is_verified: true },
           },
         },
       }),
@@ -85,11 +88,13 @@ export async function GET(req: NextRequest) {
         id: u.id,
         fullname: u.fullname,
         email: u.email,
+  phone: u.phone ?? null,
         role: u.role,
         is_active: u.is_active ?? true,
         created_at: u.created_at,
   certifications: p?.certifications ?? null,
-        working_days: p?.suitable_work_days ?? null,
+  working_days: p?.suitable_work_days ?? null,
+  working_shifts: p?.suitable_work_shift ?? null,
     age: p?.age ?? null,
     sex: p?.sex ?? null,
   verified: typeof p?.is_verified === "boolean" ? p?.is_verified : null,
