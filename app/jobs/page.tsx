@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Search,
+  X,
   MapPin,
   Clock,
   DollarSign,
@@ -86,6 +87,24 @@ const SimpleSelect = ({
   );
 };
 
+// Small chip UI for active filters
+const Chip = ({
+  label,
+  onClear,
+}: {
+  label: string;
+  onClear: () => void;
+}) => {
+  return (
+    <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-800 px-3 py-1 rounded-full text-sm">
+      <span className="truncate max-w-[12rem]">{label}</span>
+      <button onClick={onClear} className="p-1 rounded-full hover:bg-slate-200" aria-label={`Clear ${label}`}>
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  );
+};
+
 export default function JobsPage() {
   const { status, data: session } = useSession();
   const router = useRouter();
@@ -114,6 +133,7 @@ export default function JobsPage() {
     applicants: number;
   };
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [shiftTypeFilter, setShiftTypeFilter] = useState("");
   const [genderPreferenceFilter, setGenderPreferenceFilter] = useState("");
@@ -154,6 +174,11 @@ export default function JobsPage() {
     setCoverLetter("");
   }, [filtersSnapshot]);
 
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+  
   useEffect(() => {
     const load = async () => {
       try {
@@ -364,129 +389,177 @@ export default function JobsPage() {
         }}
       />
       {/* Hero Banner */}
-<section className="py-24 lg:py-36 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-  {/* Background elements */}
-  <div className="absolute inset-0 bg-[url('/pattern-dark.svg')] opacity-10"></div>
-  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+      <section className="py-10 lg:py-16 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+        {/* Background elements */}
+        <div className="absolute inset-0 bg-[url('/pattern-dark.svg')] opacity-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
 
-  {/* Animated dots decoration */}
-  <div className="absolute top-0 left-0 w-full h-full opacity-30">
-    {/* Blue dots group - top left */}
-    <div className="absolute top-[15%] left-[10%] w-5 h-5 rounded-full bg-blue-400 animate-pulse"></div>
-    <div className="absolute top-[25%] left-[30%] w-5 h-5 rounded-full bg-indigo-400 animate-pulse delay-200"></div>
-    <div className="absolute top-[10%] left-[50%] w-5 h-5 rounded-full bg-slate-400 animate-pulse delay-300"></div>
-    <div className="absolute top-[30%] left-[15%] w-5 h-5 rounded-full bg-blue-400 animate-pulse delay-250"></div>
-    <div className="absolute top-[20%] left-[70%] w-5 h-5 rounded-full bg-indigo-400 animate-pulse delay-400"></div>
-    <div className="absolute top-[35%] left-[60%] w-5 h-5 rounded-full bg-blue-400 animate-pulse delay-350"></div>
-    <div className="absolute top-[5%] left-[80%] w-5 h-5 rounded-full bg-slate-500 animate-pulse delay-500"></div>
+        {/* Animated dots decoration */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-30">
+          {/* Blue dots group - top left */}
+          <div className="absolute top-[15%] left-[10%] w-5 h-5 rounded-full bg-blue-400 animate-pulse"></div>
+          <div className="absolute top-[25%] left-[30%] w-5 h-5 rounded-full bg-indigo-400 animate-pulse delay-200"></div>
+          <div className="absolute top-[10%] left-[50%] w-5 h-5 rounded-full bg-slate-400 animate-pulse delay-300"></div>
+          <div className="absolute top-[30%] left-[15%] w-5 h-5 rounded-full bg-blue-400 animate-pulse delay-250"></div>
+          <div className="absolute top-[20%] left-[70%] w-5 h-5 rounded-full bg-indigo-400 animate-pulse delay-400"></div>
+          <div className="absolute top-[35%] left-[60%] w-5 h-5 rounded-full bg-blue-400 animate-pulse delay-350"></div>
+          <div className="absolute top-[5%] left-[80%] w-5 h-5 rounded-full bg-slate-500 animate-pulse delay-500"></div>
 
-    {/* Bottom right dots */}
-    <div className="absolute bottom-[20%] right-[15%] w-4 h-4 rounded-full bg-indigo-400 animate-pulse delay-300"></div>
-    <div className="absolute bottom-[30%] right-[30%] w-6 h-6 rounded-full bg-slate-400 animate-pulse delay-700"></div>
-  </div>
+          {/* Bottom right dots */}
+          <div className="absolute bottom-[20%] right-[15%] w-4 h-4 rounded-full bg-indigo-400 animate-pulse delay-300"></div>
+          <div className="absolute bottom-[30%] right-[30%] w-6 h-6 rounded-full bg-slate-400 animate-pulse delay-700"></div>
+        </div>
 
-  <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-    <div className="max-w-4xl mx-auto text-center space-y-8">
-      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
-        Find Your Perfect <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-indigo-300 animate-gradient">Caregiving</span> Job
-      </h1>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
+              Find Your Perfect{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-indigo-300 animate-gradient">
+                Caregiving
+              </span>{" "}
+              Job
+            </h1>
 
-      <p className="text-xl text-blue-100/90 leading-relaxed max-w-3xl mx-auto">
-        Discover meaningful opportunities to make a difference in families' lives
-        <span className="block sm:inline"> across the United States</span>
-      </p>
+            <p className="text-xl text-blue-100/90 leading-relaxed max-w-3xl mx-auto">
+              Discover meaningful opportunities to make a difference in
+              families' lives
+              <span className="block sm:inline"> across the United States</span>
+            </p>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
-          <Heart className="w-4 h-4 mr-2 text-pink-300" />
-          {jobs.filter((job) => job.isOpen).length} Active Jobs
-        </Badge>
-        <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
-          <Users className="w-4 h-4 mr-2 text-blue-300" />
-          Trusted Families
-        </Badge>
-        <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
-          <Star className="w-4 h-4 mr-2 text-yellow-300" />
-          Top Rated Platform
-        </Badge>
-      </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
+                <Heart className="w-4 h-4 mr-2 text-pink-300" />
+                {jobs.filter((job) => job.isOpen).length} Active Jobs
+              </Badge>
+              <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
+                <Users className="w-4 h-4 mr-2 text-blue-300" />
+                Trusted Families
+              </Badge>
+              <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
+                <Star className="w-4 h-4 mr-2 text-yellow-300" />
+                Top Rated Platform
+              </Badge>
+            </div>
+          </div>
+        </div>
 
-    </div>
-  </div>
+        {/* Large blur circles */}
+        <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-blue-400/10 blur-xl animate-pulse-slow"></div>
+        <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-indigo-400/10 blur-xl animate-pulse-slow delay-1000"></div>
+      </section>
 
-  {/* Large blur circles */}
-  <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-blue-400/10 blur-xl animate-pulse-slow"></div>
-  <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-indigo-400/10 blur-xl animate-pulse-slow delay-1000"></div>
-</section>
-
-      {/* Search and Filters */}
-      <section className="py-8 bg-white shadow-sm">
+      {/* Search and Filters - improved */}
+      <section className="py-6 bg-white shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
-            {/* Search Bar */}
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <Input
-                  type="text"
-                  placeholder="Search jobs by title, company, or keywords..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 h-14 text-base rounded-2xl border-2 border-slate-200 focus:border-blue-500 transition-colors duration-200"
-                />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <Input
+                    type="text"
+                    placeholder="Search jobs by title, company, or keywords..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-12 h-14 text-base rounded-2xl border-2 border-slate-200 focus:border-blue-500 transition-colors duration-200"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:shadow-sm"
+                  onClick={() => {
+                    // Toggle a compact filter panel in future — for now focus visual
+                  }}
+                >
+                  <Filter className="w-4 h-4 text-slate-600" />
+                  Filters
+                </button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setLocationFilter("");
+                    setShiftTypeFilter("");
+                    setGenderPreferenceFilter("");
+                    setRequirementsFilter("");
+                  }}
+                  className="text-slate-600 hover:text-slate-800"
+                >
+                  Clear
+                </Button>
               </div>
             </div>
 
-            {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Inline filter controls for larger screens, stack on mobile */}
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Location
-                </label>
                 <SimpleSelect
                   value={locationFilter}
                   onValueChange={setLocationFilter}
-                  placeholder="All Locations"
+                  placeholder="Location"
                   options={locationOptions}
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Shift Type
-                </label>
                 <SimpleSelect
                   value={shiftTypeFilter}
                   onValueChange={setShiftTypeFilter}
-                  placeholder="All Shift Types"
+                  placeholder="Shift"
                   options={shiftTypeOptions}
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Gender Preference
-                </label>
                 <SimpleSelect
                   value={genderPreferenceFilter}
                   onValueChange={setGenderPreferenceFilter}
-                  placeholder="All Preferences"
+                  placeholder="Gender"
                   options={genderPreferenceOptions}
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Requirements
-                </label>
                 <SimpleSelect
                   value={requirementsFilter}
                   onValueChange={setRequirementsFilter}
-                  placeholder="All Requirements"
+                  placeholder="Requirements"
                   options={requirementsOptions}
                 />
               </div>
             </div>
 
+            {/* Active filter chips */}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {debouncedSearch && (
+                <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">
+                  <span className="font-medium">"{debouncedSearch}"</span>
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="p-1 rounded-full hover:bg-blue-100"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              {locationFilter && (
+                <Chip label={locationOptions.find(o => o.value===locationFilter)?.label || locationFilter} onClear={() => setLocationFilter("")} />
+              )}
+              {shiftTypeFilter && (
+                <Chip label={shiftTypeOptions.find(o => o.value===shiftTypeFilter)?.label || shiftTypeFilter} onClear={() => setShiftTypeFilter("")} />
+              )}
+              {genderPreferenceFilter && (
+                <Chip label={genderPreferenceOptions.find(o => o.value===genderPreferenceFilter)?.label || genderPreferenceFilter} onClear={() => setGenderPreferenceFilter("")} />
+              )}
+              {requirementsFilter && (
+                <Chip label={requirementsOptions.find(o => o.value===requirementsFilter)?.label || requirementsFilter} onClear={() => setRequirementsFilter("")} />
+              )}
+            </div>
+
             {/* Results Count */}
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-4 flex items-center justify-between">
               <p className="text-slate-600 font-medium">
                 {loading
                   ? "Loading jobs…"
@@ -494,19 +567,6 @@ export default function JobsPage() {
                   ? "Error loading jobs"
                   : `Showing ${displayJobs.length} of ${jobs.length} jobs`}
               </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("");
-                  setLocationFilter("");
-                  setShiftTypeFilter("");
-                  setGenderPreferenceFilter("");
-                  setRequirementsFilter("");
-                }}
-                className="text-slate-600 hover:text-slate-800"
-              >
-                Clear Filters
-              </Button>
             </div>
           </div>
         </div>
