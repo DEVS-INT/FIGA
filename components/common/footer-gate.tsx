@@ -12,6 +12,7 @@ export function FooterGate() {
     "/signin",
     "/signup",
     "/signout",
+    "/jobs",
     // Hide on all employee (caregiver) and employer private areas
     /^\/caregiver(\/.*)?$/,
     /^\/employer(\/.*)?$/,

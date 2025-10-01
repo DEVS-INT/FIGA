@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
-// Protect employer and employee (caregiver) pages by role
 export async function middleware(req: NextRequest) {
   const { pathname, origin } = req.nextUrl
 
@@ -11,22 +10,18 @@ export async function middleware(req: NextRequest) {
   const isStaffArea = pathname.startsWith('/staff')
   const isAdminArea = pathname.startsWith('/admin') 
 
-  // Only guard specific areas
   if (!isEmployerArea && !isEmployeeArea && !isStaffArea && !isAdminArea) {
     return NextResponse.next()
   }
 
-  // Read NextAuth JWT (requires NEXTAUTH_SECRET in env)
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
-  // Not signed in → redirect to signin with callback
   if (!token) {
     const signInUrl = new URL('/signin', origin)
     signInUrl.searchParams.set('callbackUrl', req.nextUrl.href)
     return NextResponse.redirect(signInUrl)
   }
 
-  // Role checks
   const role = (token as any)?.role as string | undefined
 
   if (isEmployerArea && role !== 'EMPLOYER') {
@@ -56,7 +51,6 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next()
 }
 
-// Run middleware only for these paths
 export const config = {
   matcher: [
     '/employer/:path*',

@@ -43,18 +43,14 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async jwt({ token, user }) {
-            // Persist custom props on first sign in
             if (user) {
                 token.role = (user as any).role;
-                // NextAuth sets token.sub = user.id; keep an explicit id too for convenience
                 (token as any).id = (user as any).id;
             }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
-                // Ensure id and role are available on the client/session
-                // Prefer token.sub (standard) and fall back to token.id
                 (session.user as any).id = (token.sub as string) || ((token as any).id as string);
                 (session.user as any).role = (token as any).role as string | undefined; 
             }
@@ -63,14 +59,11 @@ export const authOptions: NextAuthOptions = {
         async redirect({ url, baseUrl }) {
             try {
                 const target = new URL(url, baseUrl);
-                // If coming from the default sign-in, route by role when landing at generic /dashboard
                 if (
                   target.pathname === "/dashboard" ||
                   target.pathname === "/" ||
                   target.pathname === "/signin"
                 ) {
-                    // We can't read the token here, but NextAuth will call redirect after signIn with the provided callbackUrl.
-                    // So, if no explicit app path is provided, keep default baseUrl.
                     return baseUrl;
                 }
                 return target.href;
