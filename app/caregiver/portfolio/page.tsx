@@ -302,6 +302,7 @@ export default function CaregiverPortfolioPage() {
 
   // Track selected file (not uploaded yet)
   const selectedFileRef = useRef<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const onPickFile = () => fileInputRef.current?.click();
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const f = e.target.files?.[0];
@@ -309,6 +310,39 @@ export default function CaregiverPortfolioPage() {
     if (f) {
       const url = URL.createObjectURL(f);
       setPreviewUrl(url);
+      // upload immediately to Cloudinary (unsigned preset)
+      void (async () => {
+        try {
+          setUploading(true);
+          const fd = new FormData();
+          fd.append("file", f);
+
+          // POST file to our server-side upload handler
+          const res = await fetch("/api/uploads/cloudinary", {
+            method: "POST",
+            body: fd,
+          });
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || "Upload failed");
+          }
+          const json = await res.json();
+          const urlFromCloud = json?.secure_url || json?.url;
+          if (!urlFromCloud) throw new Error("No URL returned from upload API");
+
+          // set form value to Cloudinary URL
+          form.setValue("profile_image", urlFromCloud, { shouldDirty: true });
+          setPreviewUrl(urlFromCloud);
+          // clear the selected file ref (we now have a hosted URL)
+          selectedFileRef.current = null;
+          toast.success("Image uploaded");
+        } catch (err) {
+          console.error(err);
+          toast.error(err instanceof Error ? err.message : "Upload failed");
+        } finally {
+          setUploading(false);
+        }
+      })();
     }
   };
   useEffect(() => {
@@ -577,8 +611,10 @@ export default function CaregiverPortfolioPage() {
                                 type="button"
                                 variant="outline"
                                 onClick={onPickFile}
+                                disabled={uploading}
                               >
-                                <UploadCloud className="h-4 w-4 mr-2" /> Upload
+                                <UploadCloud className="h-4 w-4 mr-2" />
+                                {uploading ? "Uploading..." : "Upload"}
                               </Button>
                               <input
                                 ref={fileInputRef}
