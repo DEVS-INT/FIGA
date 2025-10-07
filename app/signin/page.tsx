@@ -61,6 +61,10 @@ export default function SignInPage() {
         redirect: false,
       });
 
+      // debug
+      // eslint-disable-next-line no-console
+      console.debug("signIn result", result);
+
       if (result?.error) {
         throw new Error(result.error);
       }
@@ -69,12 +73,26 @@ export default function SignInPage() {
 
       const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+      // Poll /api/auth/session for the user role (session cookie may take a moment to be available)
       let userRole: string | undefined;
-      for (let i = 0; i < 5 && !userRole; i++) {
-        const res = await fetch("/api/auth/session", { cache: "no-store" });
-        const session = await res.json();
-        userRole = session?.user?.role;
-        if (!userRole) await sleep(200);
+      let attempt = 0;
+      const maxAttempts = 10;
+      while (attempt < maxAttempts && !userRole) {
+        try {
+          const res = await fetch("/api/auth/session", { cache: "no-store" });
+          const session = await res.json();
+          // debug
+          // eslint-disable-next-line no-console
+          console.debug("session poll", attempt, session);
+          userRole = session?.user?.role;
+          if (userRole) break;
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error("session poll error", err);
+        }
+        attempt++;
+        // exponential backoff up to ~1s
+        await sleep(Math.min(200 * attempt, 1000));
       }
 
       const destinations: Record<string, string> = {
