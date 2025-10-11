@@ -9,7 +9,7 @@ function staffGuard(session: any) {
   }
 }
 
-export async function GET(req: Request, ctx: { params: { userId: string } }) {
+export async function GET(req: Request, ctx: any) {
   const session = await getServerSession(authOptions);
   const guard = staffGuard(session);
   if (guard) return guard;

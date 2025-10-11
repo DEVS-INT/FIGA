@@ -43,16 +43,55 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async jwt({ token, user }) {
+            // On sign in, `user` is available. Populate token with essential fields.
             if (user) {
                 token.role = (user as any).role;
                 (token as any).id = (user as any).id;
+                // use fullname from User as display name
+                (token as any).name = (user as any).fullname || (user as any).name || token.name;
+                (token as any).email = (user as any).email || token.email;
+
+                // Try to load profile image from the user's portfolio (profile_image)
+                try {
+                    const p = await prisma.portfolio.findFirst({ where: { user_id: (user as any).id } });
+                    if (p?.profile_image) {
+                        (token as any).image = p.profile_image;
+                    }
+                } catch {}
+
+                return token;
             }
+
+            // On subsequent requests, make sure token includes latest fullname/email/image by reading DB
+            try {
+                const userId = token.sub as string | undefined;
+                if (userId) {
+                    const dbUser = await prisma.user.findUnique({ where: { id: userId } });
+                    if (dbUser) {
+                        (token as any).role = (token as any).role || dbUser.role;
+                        (token as any).name = dbUser.fullname || (token as any).name;
+                        (token as any).email = dbUser.email || (token as any).email;
+                    }
+
+                    const p = await prisma.portfolio.findFirst({ where: { user_id: userId } });
+                    if (p?.profile_image) {
+                        (token as any).image = p.profile_image;
+                    }
+                }
+            } catch (e) {
+                // ignore DB errors and return existing token
+            }
+
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
                 (session.user as any).id = (token.sub as string) || ((token as any).id as string);
-                (session.user as any).role = (token as any).role as string | undefined; 
+                (session.user as any).role = (token as any).role as string | undefined;
+                // Copy standard profile fields from token so session contains name/email/image
+                (session.user as any).name = (token as any).name || session.user.name;
+                (session.user as any).email = (token as any).email || session.user.email;
+                (session.user as any).image = (token as any).image || session.user.image;
             }
             return session;
         },

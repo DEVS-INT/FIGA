@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,34 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 export default function AdminSettingsPage() {
+  const STORAGE_KEY = "figa:sessionTimeoutMs";
+  const DEFAULT_MINUTES = 30;
+  const [timeoutMinutes, setTimeoutMinutes] = useState<number>(DEFAULT_MINUTES);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const n = parseInt(raw, 10);
+        if (Number.isFinite(n) && n > 0)
+          setTimeoutMinutes(Math.round(n / 60000));
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  function saveTimeout() {
+    try {
+      const ms = Math.max(1, Math.round(timeoutMinutes)) * 60000;
+      localStorage.setItem(STORAGE_KEY, String(ms));
+      // reload so watcher picks up immediately in some cases
+      // (storage event will notify other tabs)
+      // keep on the page but show a quick toast would be nicer; keep simple for now
+    } catch (e) {
+      // ignore
+    }
+  }
   return (
     <div className="space-y-6">
       <div>
@@ -42,7 +70,9 @@ export default function AdminSettingsPage() {
               </div>
               <Switch />
             </div>
-            <Button variant="brand" className="mt-2">Save Changes</Button>
+            <Button variant="brand" className="mt-2">
+              Save Changes
+            </Button>
           </CardContent>
         </Card>
 
@@ -60,14 +90,31 @@ export default function AdminSettingsPage() {
               </div>
               <Switch />
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="block">Session Timeout</Label>
-                <span className="text-sm text-slate-500">
-                  Auto logout after inactivity
-                </span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="block">Session Timeout (minutes)</Label>
+                  <span className="text-sm text-slate-500">
+                    Auto logout after inactivity
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    className="w-24"
+                    value={timeoutMinutes}
+                    onChange={(e) => setTimeoutMinutes(Number(e.target.value))}
+                  />
+                  <Button variant="brand" onClick={saveTimeout}>
+                    Save
+                  </Button>
+                </div>
               </div>
-              <Input className="w-24" placeholder="30m" />
+              <p className="text-sm text-slate-500">
+                Current: {timeoutMinutes} minute
+                {timeoutMinutes !== 1 ? "s" : ""}
+              </p>
             </div>
             <Button variant="outline">Rotate API Keys</Button>
           </CardContent>

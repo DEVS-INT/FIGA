@@ -335,7 +335,20 @@ export default function CaregiverPortfolioPage() {
           setPreviewUrl(urlFromCloud);
           // clear the selected file ref (we now have a hosted URL)
           selectedFileRef.current = null;
+          // Notify user and notify UI (header) that a new profile image is available
           toast.success("Image uploaded");
+          try {
+            // persist to localStorage under a per-user key so only this user's
+            // clients pick it up. Also include userId in the event detail.
+            const userId = session?.user?.id;
+            const key = userId ? `figa:profileImage:${userId}` : "figa:profileImage";
+            localStorage.setItem(key, urlFromCloud);
+            window.dispatchEvent(
+              new CustomEvent("profile:image:uploaded", {
+                detail: { userId, url: urlFromCloud },
+              })
+            );
+          } catch (e) {}
         } catch (err) {
           console.error(err);
           toast.error(err instanceof Error ? err.message : "Upload failed");

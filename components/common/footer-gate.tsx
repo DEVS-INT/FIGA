@@ -17,6 +17,7 @@ export function FooterGate() {
     /^\/caregiver(\/.*)?$/,
     /^\/employer(\/.*)?$/,
     /^\/staff(\/.*)?$/,
+    /^\/admin(\/.*)?$/,
   ];
 
   const hide = hiddenRoutes.some((rule) =>

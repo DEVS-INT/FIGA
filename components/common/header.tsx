@@ -40,9 +40,69 @@ interface HeaderProps {
 
 export function Header({ variant = "default" }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // allow immediate UI update after profile image upload without sign-out/sign-in
+  const [overrideImage, setOverrideImage] = useState<string | null>(null);
+  // Ensure session is available for effects below
+  const { status, data: session } = useSession();
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent<any>).detail as { userId?: string; url?: string } | undefined;
+        const url = detail?.url as string | undefined;
+        const eventUserId = detail?.userId as string | undefined;
+        const myUserId = session?.user?.id as string | undefined;
+        // If the event includes a userId, only accept it when it matches our session user id.
+        if (eventUserId) {
+          if (!myUserId) return;
+          if (eventUserId !== myUserId) return;
+        }
+        if (url) setOverrideImage(url);
+      } catch (err) {}
+    };
+    window.addEventListener("profile:image:uploaded", handler as EventListener);
+    return () => window.removeEventListener("profile:image:uploaded", handler as EventListener);
+  }, [session]);
+
+  // read any persisted profile image (set after upload) so avatar updates without reload
+  React.useEffect(() => {
+    try {
+      const myUserId = session?.user?.id as string | undefined;
+      const key = myUserId ? `figa:profileImage:${myUserId}` : "figa:profileImage";
+      const url = localStorage.getItem(key);
+      setOverrideImage(url ?? null);
+    } catch {}
+  }, [session]);
+
+  // If session doesn't include an image (common after upload), try fetching the caregiver portfolio
+  // to retrieve profile_image and use it as the avatar. This handles the case where session JWT
+  // wasn't refreshed after the upload.
+  React.useEffect(() => {
+    let mounted = true;
+    async function loadProfileImageFromApi() {
+      try {
+        if (!session?.user || overrideImage) return;
+        if (session.user.role !== "EMPLOYEE") return;
+        const res = await fetch("/api/caregiver/portfolio", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        const url = json?.portfolio?.profile_image as string | undefined;
+        if (mounted && url) {
+          setOverrideImage(url);
+          try {
+            localStorage.setItem("figa:profileImage", url);
+          } catch {}
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    void loadProfileImageFromApi();
+    return () => {
+      mounted = false;
+    };
+  }, [session, overrideImage]);
   const pathname = usePathname();
   const router = useRouter();
-  const { status, data: session } = useSession();
 
   // Check authentication and role
   const isAuthenticated = status === "authenticated";
@@ -189,13 +249,16 @@ export function Header({ variant = "default" }: HeaderProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Avatar className="cursor-pointer border-2 border-blue-500 hover:scale-105 transition-transform">
-                      <AvatarImage
-                        src={user?.image || "https://github.com/shadcn.png"}
-                        alt={user?.name || "User"}
-                      />
-                      <AvatarFallback className="bg-blue-100 text-blue-800 font-medium">
-                        {user?.name?.charAt(0).toUpperCase() || "U"}
-                      </AvatarFallback>
+                      {/* Prefer uploaded image (user.image) then user.imageUrl if present */}
+                      {overrideImage ? (
+                        <AvatarImage src={overrideImage} alt={user?.name || "User"} />
+                      ) : user?.image || (user as any)?.imageUrl ? (
+                        <AvatarImage src={(user as any)?.image || (user as any)?.imageUrl} alt={user?.name || "User"} />
+                      ) : (
+                        <AvatarFallback className="bg-blue-100 text-blue-800 font-medium">
+                          {user?.name?.charAt(0).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end">
@@ -223,11 +286,15 @@ export function Header({ variant = "default" }: HeaderProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Avatar className="cursor-pointer border-2 border-blue-500 hover:scale-105 transition-transform">
-                      {/* Force fallback by omitting image src */}
-                      <AvatarImage src={""} alt={user?.name || "User"} />
-                      <AvatarFallback className="bg-blue-100 text-blue-800 font-medium">
-                        {userInitial}
-                      </AvatarFallback>
+                      {overrideImage ? (
+                        <AvatarImage src={overrideImage} alt={user?.name || "User"} />
+                      ) : (user as any)?.image || (user as any)?.imageUrl ? (
+                        <AvatarImage src={(user as any)?.image || (user as any)?.imageUrl} alt={user?.name || "User"} />
+                      ) : (
+                        <AvatarFallback className="bg-blue-100 text-blue-800 font-medium">
+                          {userInitial}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end">
