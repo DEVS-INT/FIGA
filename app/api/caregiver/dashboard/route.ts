@@ -51,6 +51,7 @@ export async function GET() {
     }
 
     const mappedUser = {
+      id: user.id,
       name: user.fullname,
       email: user.email,
       phone: user.phone || "",

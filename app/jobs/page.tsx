@@ -88,17 +88,15 @@ const SimpleSelect = ({
 };
 
 // Small chip UI for active filters
-const Chip = ({
-  label,
-  onClear,
-}: {
-  label: string;
-  onClear: () => void;
-}) => {
+const Chip = ({ label, onClear }: { label: string; onClear: () => void }) => {
   return (
     <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-800 px-3 py-1 rounded-full text-sm">
       <span className="truncate max-w-[12rem]">{label}</span>
-      <button onClick={onClear} className="p-1 rounded-full hover:bg-slate-200" aria-label={`Clear ${label}`}>
+      <button
+        onClick={onClear}
+        className="p-1 rounded-full hover:bg-slate-200"
+        aria-label={`Clear ${label}`}
+      >
         <X className="w-3 h-3" />
       </button>
     </div>
@@ -178,7 +176,7 @@ export default function JobsPage() {
     const t = setTimeout(() => setDebouncedSearch(searchTerm), 300);
     return () => clearTimeout(t);
   }, [searchTerm]);
-  
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -545,16 +543,42 @@ export default function JobsPage() {
                 </div>
               )}
               {locationFilter && (
-                <Chip label={locationOptions.find(o => o.value===locationFilter)?.label || locationFilter} onClear={() => setLocationFilter("")} />
+                <Chip
+                  label={
+                    locationOptions.find((o) => o.value === locationFilter)
+                      ?.label || locationFilter
+                  }
+                  onClear={() => setLocationFilter("")}
+                />
               )}
               {shiftTypeFilter && (
-                <Chip label={shiftTypeOptions.find(o => o.value===shiftTypeFilter)?.label || shiftTypeFilter} onClear={() => setShiftTypeFilter("")} />
+                <Chip
+                  label={
+                    shiftTypeOptions.find((o) => o.value === shiftTypeFilter)
+                      ?.label || shiftTypeFilter
+                  }
+                  onClear={() => setShiftTypeFilter("")}
+                />
               )}
               {genderPreferenceFilter && (
-                <Chip label={genderPreferenceOptions.find(o => o.value===genderPreferenceFilter)?.label || genderPreferenceFilter} onClear={() => setGenderPreferenceFilter("")} />
+                <Chip
+                  label={
+                    genderPreferenceOptions.find(
+                      (o) => o.value === genderPreferenceFilter
+                    )?.label || genderPreferenceFilter
+                  }
+                  onClear={() => setGenderPreferenceFilter("")}
+                />
               )}
               {requirementsFilter && (
-                <Chip label={requirementsOptions.find(o => o.value===requirementsFilter)?.label || requirementsFilter} onClear={() => setRequirementsFilter("")} />
+                <Chip
+                  label={
+                    requirementsOptions.find(
+                      (o) => o.value === requirementsFilter
+                    )?.label || requirementsFilter
+                  }
+                  onClear={() => setRequirementsFilter("")}
+                />
               )}
             </div>
 

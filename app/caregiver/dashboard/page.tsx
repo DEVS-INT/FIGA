@@ -46,6 +46,7 @@ import Link from "next/link";
 import { RatingSystem } from "@/components/RatingSystem";
 
 export default function EmployeeDashboard() {
+
   const [isActive, setIsActive] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
@@ -57,6 +58,37 @@ export default function EmployeeDashboard() {
   // Real data state loaded from API
   const [userData, setUserData] = useState<any | null>(null);
   const [applications, setApplications] = useState<any[]>([]);
+
+  // allow immediate avatar update after profile image upload
+  const [overrideImage, setOverrideImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userData?.id) return; // don't attach until we know the user id
+    const handler = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent<any>).detail as { userId?: string; url?: string } | undefined;
+        const url = detail?.url as string | undefined;
+        const eventUserId = detail?.userId as string | undefined;
+        const myUserId = userData?.id as string | undefined;
+        if (!myUserId) return;
+        // only accept events for this user
+        if (eventUserId && eventUserId !== myUserId) return;
+        if (url) setOverrideImage(url);
+      } catch (err) {}
+    };
+    window.addEventListener("profile:image:uploaded", handler as EventListener);
+    return () => window.removeEventListener("profile:image:uploaded", handler as EventListener);
+  }, [userData?.id]);
+
+  useEffect(() => {
+    try {
+      const myUserId = userData?.id as string | undefined;
+      const key = myUserId ? `figa:profileImage:${myUserId}` : "figa:profileImage";
+      const url = localStorage.getItem(key);
+      // set override only when the per-user value exists; otherwise clear it
+      setOverrideImage(url ?? null);
+    } catch {}
+  }, [userData?.id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -206,7 +238,9 @@ export default function EmployeeDashboard() {
                   ← Back to Dashboard
                 </Button>
                 <Avatar>
-                  <AvatarImage src={""} alt={userData?.name || 'User'} />
+                  {(overrideImage || userData?.profileImage) ? (
+                    <AvatarImage src={overrideImage || userData?.profileImage} alt={userData?.name || 'User'} />
+                  ) : null}
                   <AvatarFallback className="bg-blue-600 text-white">
                     {(userData?.name ? userData.name.split(' ').map((n: string) => n[0]).join('') : 'U')}
                   </AvatarFallback>
@@ -228,7 +262,7 @@ export default function EmployeeDashboard() {
                 ← Back to Dashboard
               </Button>
               <Avatar>
-                <AvatarImage src={""} alt={userData?.name || "User"} />
+                <AvatarImage src={overrideImage || userData?.profileImage || "/placeholder.svg?height=32&width=32"} alt={userData?.name || "User"} />
                 <AvatarFallback className="bg-blue-600 text-white">
                   {userData?.name
                     ? userData.name
@@ -484,7 +518,7 @@ export default function EmployeeDashboard() {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Professional Dashboard</span>
               <Avatar>
-                <AvatarImage src={userData.profileImage || "/placeholder.svg?height=32&width=32"} />
+                <AvatarImage src={overrideImage || userData.profileImage || "/placeholder.svg?height=32&width=32"} />
                 <AvatarFallback className="bg-blue-600 text-white">
                   {userData.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
@@ -502,7 +536,9 @@ export default function EmployeeDashboard() {
             <div className="relative p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16 ring-2 ring-blue-100">
-                  <AvatarImage src={""} alt={userData?.name || "User"} />
+                  {(overrideImage || userData?.profileImage) ? (
+                    <AvatarImage src={overrideImage || userData?.profileImage} alt={userData?.name || "User"} />
+                  ) : null}
                   <AvatarFallback className="bg-blue-600 text-white text-xl">
                     {userData?.name
                       ? userData.name
@@ -951,7 +987,9 @@ export default function EmployeeDashboard() {
               <CardContent className="space-y-6">
                 <div className="flex items-center space-x-6">
                   <Avatar className="w-24 h-24 ring-2 ring-blue-100">
-                    <AvatarImage src={""} alt={userData?.name || "User"} />
+                    {(overrideImage || userData?.profileImage) ? (
+                      <AvatarImage src={overrideImage || userData?.profileImage} alt={userData?.name || "User"} />
+                    ) : null}
                     <AvatarFallback className="bg-blue-600 text-white text-2xl">
                       {userData?.name
                         ? userData.name

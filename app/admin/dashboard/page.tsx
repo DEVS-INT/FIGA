@@ -49,6 +49,14 @@ export default function AdminDashboardPage() {
   >([]);
   const router = useRouter();
 
+  const pieConfig = useMemo(() => {
+    const cfg: Record<string, { label?: string; color?: string }> = {};
+    roleBreakdown.forEach((r) => {
+      if (r?.name) cfg[r.name] = { label: r.name, color: r.color };
+    });
+    return cfg;
+  }, [roleBreakdown]);
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -236,25 +244,35 @@ export default function AdminDashboardPage() {
             <CardTitle>Users by Role</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="h-[300px]">
-              <PieChart>
-                <Pie
-                  data={roleBreakdown}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={4}
-                >
-                  {roleBreakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </PieChart>
-            </ChartContainer>
+            {roleBreakdown.length === 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-sm text-muted-foreground">
+                No role data available
+              </div>
+            ) : (
+              <ChartContainer
+                config={pieConfig as any}
+                className="h-[300px] flex items-center justify-center"
+              >
+                <PieChart>
+                  <Pie
+                    data={roleBreakdown}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={4}
+                  >
+                    {roleBreakdown.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </PieChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
       </div>
