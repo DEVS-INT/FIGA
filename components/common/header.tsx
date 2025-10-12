@@ -47,7 +47,9 @@ export function Header({ variant = "default" }: HeaderProps) {
   React.useEffect(() => {
     const handler = (e: Event) => {
       try {
-        const detail = (e as CustomEvent<any>).detail as { userId?: string; url?: string } | undefined;
+        const detail = (e as CustomEvent<any>).detail as
+          | { userId?: string; url?: string }
+          | undefined;
         const url = detail?.url as string | undefined;
         const eventUserId = detail?.userId as string | undefined;
         const myUserId = session?.user?.id as string | undefined;
@@ -60,14 +62,20 @@ export function Header({ variant = "default" }: HeaderProps) {
       } catch (err) {}
     };
     window.addEventListener("profile:image:uploaded", handler as EventListener);
-    return () => window.removeEventListener("profile:image:uploaded", handler as EventListener);
+    return () =>
+      window.removeEventListener(
+        "profile:image:uploaded",
+        handler as EventListener
+      );
   }, [session]);
 
   // read any persisted profile image (set after upload) so avatar updates without reload
   React.useEffect(() => {
     try {
       const myUserId = session?.user?.id as string | undefined;
-      const key = myUserId ? `figa:profileImage:${myUserId}` : "figa:profileImage";
+      const key = myUserId
+        ? `figa:profileImage:${myUserId}`
+        : "figa:profileImage";
       const url = localStorage.getItem(key);
       setOverrideImage(url ?? null);
     } catch {}
@@ -82,7 +90,9 @@ export function Header({ variant = "default" }: HeaderProps) {
       try {
         if (!session?.user || overrideImage) return;
         if (session.user.role !== "EMPLOYEE") return;
-        const res = await fetch("/api/caregiver/portfolio", { cache: "no-store" });
+        const res = await fetch("/api/caregiver/portfolio", {
+          cache: "no-store",
+        });
         if (!res.ok) return;
         const json = await res.json();
         const url = json?.portfolio?.profile_image as string | undefined;
@@ -251,9 +261,15 @@ export function Header({ variant = "default" }: HeaderProps) {
                     <Avatar className="cursor-pointer border-2 border-blue-500 hover:scale-105 transition-transform">
                       {/* Prefer uploaded image (user.image) then user.imageUrl if present */}
                       {overrideImage ? (
-                        <AvatarImage src={overrideImage} alt={user?.name || "User"} />
+                        <AvatarImage
+                          src={overrideImage}
+                          alt={user?.name || "User"}
+                        />
                       ) : user?.image || (user as any)?.imageUrl ? (
-                        <AvatarImage src={(user as any)?.image || (user as any)?.imageUrl} alt={user?.name || "User"} />
+                        <AvatarImage
+                          src={(user as any)?.image || (user as any)?.imageUrl}
+                          alt={user?.name || "User"}
+                        />
                       ) : (
                         <AvatarFallback className="bg-blue-100 text-blue-800 font-medium">
                           {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -287,9 +303,15 @@ export function Header({ variant = "default" }: HeaderProps) {
                   <DropdownMenuTrigger asChild>
                     <Avatar className="cursor-pointer border-2 border-blue-500 hover:scale-105 transition-transform">
                       {overrideImage ? (
-                        <AvatarImage src={overrideImage} alt={user?.name || "User"} />
+                        <AvatarImage
+                          src={overrideImage}
+                          alt={user?.name || "User"}
+                        />
                       ) : (user as any)?.image || (user as any)?.imageUrl ? (
-                        <AvatarImage src={(user as any)?.image || (user as any)?.imageUrl} alt={user?.name || "User"} />
+                        <AvatarImage
+                          src={(user as any)?.image || (user as any)?.imageUrl}
+                          alt={user?.name || "User"}
+                        />
                       ) : (
                         <AvatarFallback className="bg-blue-100 text-blue-800 font-medium">
                           {userInitial}
@@ -368,8 +390,8 @@ export function Header({ variant = "default" }: HeaderProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-200">
-            <div className="flex flex-col space-y-4">
+          <div className="md:hidden py-4 border-t  border-slate-200">
+            <div className="flex  flex-col space-y-4">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -434,12 +456,13 @@ export function Header({ variant = "default" }: HeaderProps) {
                     </Button>
                   </>
                 ) : (
-                  <>
+                  <div className="flex gap-2">
                     <Button
+                      
                       variant="ghost"
                       className={cn(
-                        "w-full justify-start text-slate-700 hover:text-blue-600 hover:bg-blue-50",
-                        pathname === "/signin" && "text-blue-600 "
+                        "w-fit  justify-start bg-gradient-to-r from-blue-100 to-blue-200 text-slate-700 hover:text-blue-600 hover:bg-blue-300",
+                        pathname === "/signin" && "text-blue-600"
                       )}
                       onClick={() => {
                         setMobileMenuOpen(false);
@@ -450,7 +473,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     </Button>
                     <Button
                       className={cn(
-                        "w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white",
+                        "w-fit  bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white",
                         pathname === "/signup" && "from-blue-700 to-blue-800"
                       )}
                       onClick={() => {
@@ -460,7 +483,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     >
                       Get Started
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
