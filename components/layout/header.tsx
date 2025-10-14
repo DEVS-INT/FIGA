@@ -90,7 +90,7 @@ export function Header({ variant = "default" }: HeaderProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200">
-              <FigaLogo size="sm" variant="white" />
+              <FigaLogo size="lg" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
               FIGA LLC

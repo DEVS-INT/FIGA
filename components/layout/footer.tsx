@@ -9,9 +9,15 @@ import {
   Twitter,
   Instagram,
   Linkedin,
+  ChevronDown,
 } from "lucide-react";
+import { useState } from "react";
 
 export function Footer() {
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+
   return (
     <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -20,7 +26,7 @@ export function Footer() {
           <div className="space-y-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <FigaLogo size="sm" variant="white" />
+                <FigaLogo size="lg" variant="white" />
               </div>
               <span className="text-2xl font-bold">FIGA LLC</span>
             </div>
@@ -77,8 +83,16 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-6">Quick Links</h3>
-            <ul className="space-y-3">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between md:justify-start md:block text-lg font-semibold mb-6 text-left md:text-inherit"
+              onClick={() => setQuickOpen((s) => !s)}
+              aria-expanded={quickOpen}
+            >
+              <span>Quick Links</span>
+              <ChevronDown className={`w-4 h-4 ml-2 transition-transform duration-200 md:hidden ${quickOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <ul className={`${quickOpen ? 'block' : 'hidden'} md:block space-y-3`}>
               {[
                 { href: "/about", label: "About Us" },
                 { href: "/jobs", label: "Find Jobs" },
@@ -99,8 +113,16 @@ export function Footer() {
 
           {/* Services */}
           <div>
-            <h3 className="text-lg font-semibold mb-6">Services</h3>
-            <ul className="space-y-3">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between md:justify-start md:block text-lg font-semibold mb-6 text-left md:text-inherit"
+              onClick={() => setServicesOpen((s) => !s)}
+              aria-expanded={servicesOpen}
+            >
+              <span>Services</span>
+              <ChevronDown className={`w-4 h-4 ml-2 transition-transform duration-200 md:hidden ${servicesOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <ul className={`${servicesOpen ? 'block' : 'hidden'} md:block space-y-3`}>
               {[
                 "Elder Care",
                 "Companion Care",
@@ -118,8 +140,16 @@ export function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-6">Contact Info</h3>
-            <div className="space-y-4">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between md:justify-start md:block text-lg font-semibold mb-6 text-left md:text-inherit"
+              onClick={() => setContactOpen((s) => !s)}
+              aria-expanded={contactOpen}
+            >
+              <span>Contact Info</span>
+              <ChevronDown className={`w-4 h-4 ml-2 transition-transform duration-200 md:hidden ${contactOpen ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`${contactOpen ? 'block' : 'hidden'} md:block space-y-4`}>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-blue-400" />
                 <span className="text-slate-300">(415) 555-0123</span>

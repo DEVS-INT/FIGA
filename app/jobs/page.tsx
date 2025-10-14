@@ -155,6 +155,12 @@ export default function JobsPage() {
   const [filteredJobsSnapshot, setFilteredJobsSnapshot] = useState<
     JobCard[] | null
   >(null);
+  // Track which job cards are expanded on mobile
+  const [expandedJobs, setExpandedJobs] = useState<Record<number, boolean>>({});
+
+  const toggleJobExpanded = (id: number) => {
+    setExpandedJobs((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Centralized close to ensure filters/results restore consistently
   const closeApplyModal = React.useCallback(() => {
@@ -424,7 +430,7 @@ export default function JobsPage() {
               <span className="block sm:inline"> across the United States</span>
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-row sm:flex-row gap-4 justify-center items-center">
               <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
                 <Heart className="w-4 h-4 mr-2 text-pink-300" />
                 {jobs.filter((job) => job.isOpen).length} Active Jobs
@@ -433,10 +439,10 @@ export default function JobsPage() {
                 <Users className="w-4 h-4 mr-2 text-blue-300" />
                 Trusted Families
               </Badge>
-              <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
+              {/* <Badge className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border-white/20 px-5 py-2 text-sm font-medium transition-all hover:scale-[1.02]">
                 <Star className="w-4 h-4 mr-2 text-yellow-300" />
                 Top Rated Platform
-              </Badge>
+              </Badge> */}
             </div>
           </div>
         </div>
@@ -636,7 +642,7 @@ export default function JobsPage() {
                           </div>
 
                           {/* Job Details Grid */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                             <div className="flex items-center text-slate-600">
                               <MapPin className="w-4 h-4 mr-2 text-blue-600" />
                               <span>{job.location}</span>
@@ -668,7 +674,11 @@ export default function JobsPage() {
                           </div>
 
                           {/* Shift Types */}
-                          <div className="mb-4">
+                          <div
+                            className={`${
+                              expandedJobs[job.id] ? "block" : "hidden sm:block"
+                            } mb-4`}
+                          >
                             <h4 className="font-semibold text-slate-900 mb-2">
                               Shift Types:
                             </h4>
@@ -686,12 +696,20 @@ export default function JobsPage() {
                           </div>
 
                           {/* Description */}
-                          <p className="text-slate-700 mb-4 leading-relaxed text-base">
+                          <p
+                            className={`text-slate-700 mb-4 leading-relaxed text-base ${
+                              expandedJobs[job.id] ? "block" : "hidden sm:block"
+                            }`}
+                          >
                             {job.description}
                           </p>
 
                           {/* Requirements */}
-                          <div className="mb-4">
+                          <div
+                            className={`${
+                              expandedJobs[job.id] ? "block" : "hidden sm:block"
+                            } mb-4`}
+                          >
                             <h4 className="font-semibold text-slate-900 mb-2">
                               Requirements:
                             </h4>
@@ -710,7 +728,11 @@ export default function JobsPage() {
 
                           {/* Additional Notes */}
                           {job.additionalNotes && (
-                            <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div
+                              className={`mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 ${
+                                expandedJobs[job.id] ? "block" : "hidden sm:block"
+                              }`}
+                            >
                               <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
                                 <AlertCircle className="w-4 h-4 mr-2" />
                                 Additional Notes:
@@ -727,6 +749,15 @@ export default function JobsPage() {
                               <span>Posted {job.posted}</span>
                               <span>•</span>
                               <span>{job.applicants} applicants</span>
+                            </div>
+                            {/* Mobile See more / See less toggle */}
+                            <div className="sm:hidden">
+                              <button
+                                onClick={() => toggleJobExpanded(job.id)}
+                                className="text-blue-600 hover:underline text-sm font-medium"
+                              >
+                                {expandedJobs[job.id] ? "See less" : "See more"}
+                              </button>
                             </div>
                           </div>
                         </div>

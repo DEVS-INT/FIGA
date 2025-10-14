@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,8 @@ import {
   Send,
   AlertCircle,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export default function AboutPage() {
@@ -74,6 +76,17 @@ export default function AboutPage() {
     visible: { opacity: 1, y: 0 },
   };
 
+  // Carousel ref for Mission & Values mobile arrows
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollByWidth = (dir: "left" | "right") => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const visible = el.clientWidth || 300;
+    const amount = Math.max(visible * 0.7, 150);
+    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
@@ -118,9 +131,9 @@ export default function AboutPage() {
               Bay Area.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-row flex-wrap items-center justify-center gap-3 sm:gap-4">
               <Button
-                className="bg-white text-blue-800 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 px-8 py-6 text-lg font-semibold"
+                className="w-auto whitespace-nowrap bg-white text-blue-800 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 px-4 sm:px-8 py-2.5 sm:py-6 text-sm sm:text-lg font-semibold"
                 size="lg"
                 onClick={() =>
                   document
@@ -133,7 +146,7 @@ export default function AboutPage() {
               </Button>
               <Button
                 variant="outline"
-                className="bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white px-8 py-6 text-lg font-semibold"
+                className="w-auto whitespace-nowrap bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white px-4 sm:px-8 py-2.5 sm:py-6 text-sm sm:text-lg font-semibold"
                 size="lg"
                 onClick={() =>
                   document
@@ -160,7 +173,28 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="relative">
+            {/* Mobile arrows */}
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20 sm:hidden">
+              <button
+                onClick={() => scrollByWidth("left")}
+                className="bg-white/90 p-2 rounded-full shadow-md"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-700" />
+              </button>
+            </div>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 sm:hidden">
+              <button
+                onClick={() => scrollByWidth("right")}
+                className="bg-white/90 p-2 rounded-full shadow-md"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-5 h-5 text-slate-700" />
+              </button>
+            </div>
+
+            <div ref={carouselRef} className="flex flex-row sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto sm:overflow-visible hide-scrollbar snap-x snap-mandatory -mx-4 sm:mx-0 px-4 sm:px-0">
             {[
               {
                 icon: Heart,
@@ -189,7 +223,7 @@ export default function AboutPage() {
             ].map((item, index) => (
               <Card
                 key={index}
-                className="bg-white border-0 shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                className="snap-start flex-shrink-0 w-[85%] sm:w-auto bg-white border-0 shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer"
               >
                 <CardContent className="p-6 text-center">
                   <div
@@ -206,6 +240,7 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
+      </div>
       </section>
 
       {/* Services Overview */}

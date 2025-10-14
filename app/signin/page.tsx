@@ -149,6 +149,30 @@ export default function SignInPage() {
                 <FigaLogo size="lg" />
               </div>
 
+              {/* Mobile-only overlay content (show the right-panel text but without the image) */}
+              <div className="block md:hidden mb-6">
+                <div className="rounded-2xl p-4 bg-gradient-to-tr from-blue-900/85 via-blue-700/50 to-indigo-600 text-white">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center bg-white/10 backdrop-blur px-3 py-1 rounded-full border border-white/20 text-sm">
+                      <Heart className="w-4 h-4 mr-1" /> Caring made simple
+                    </span>
+                  </div>
+
+                  <h2 className="text-2xl font-bold leading-tight mb-2">
+                    Your trusted partner in care
+                  </h2>
+                  <p className="text-white/80 mb-3">
+                    Connect with compassionate caregivers and employers in a safe,
+                    secure community.
+                  </p>
+
+                  <div className="bg-white/90 text-blue-900 text-sm px-3 py-2 rounded-xl shadow-sm border border-white/60">
+                    Compassion meets reliability. Building trusted care connections,
+                    one match at a time.
+                  </div>
+                </div>
+              </div>
+
               <Card className="border-0 shadow-none bg-transparent w-full">
                 <CardHeader className="space-y-1 p-0 mb-4">
                   <CardTitle className="text-3xl font-extrabold tracking-tight text-slate-900">

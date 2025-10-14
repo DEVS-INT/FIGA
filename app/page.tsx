@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, ArrowRight, Heart, ChevronDown } from "lucide-react";
+import { Star, ArrowRight, Heart, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -54,6 +54,17 @@ export default function HomePage() {
       cancelled = true;
     };
   }, []);
+
+  // Carousel ref and helper for Testimonials mobile arrows
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollByWidth = (dir: "left" | "right") => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const visible = el.clientWidth || 300;
+    const amount = Math.max(visible * 0.7, 150);
+    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  };
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100/30">
       <main className="flex-1">
@@ -61,22 +72,23 @@ export default function HomePage() {
         <section className="py-10 lg:py-20 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-blue-500/5 to-blue-700/10"></div>
           <div className="absolute top-0 left-0 w-full h-full">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-blue-600/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-            <div className="absolute top-40 right-10 w-72 h-72 bg-gradient-to-r from-blue-500/20 to-blue-700/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-blue-600/20 to-blue-800/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+            {/* Decorative blobs: hide on very small screens to reduce clutter */}
+            <div className="hidden sm:block absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-blue-600/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+            <div className="hidden sm:block absolute top-40 right-10 w-72 h-72 bg-gradient-to-r from-blue-500/20 to-blue-700/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+            <div className="hidden sm:block absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-blue-600/20 to-blue-800/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
           </div>
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[60vh]">
               {/* Left Side - Hero Content */}
-              <div className="space-y-8 animate-slide-up">
-                <Badge className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-300 px-6 py-3 text-lg font-semibold animate-fade-in">
+              <div className="space-y-8 animate-slide-up text-center sm:text-left">
+                <Badge className="mx-auto sm:mx-0 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-300 px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-lg font-semibold animate-fade-in">
                   <Heart className="w-5 h-5 mr-2" />
                   Connecting Families with Trusted Caregivers
                 </Badge>
 
                 <div className="space-y-6">
-                  <h1 className="text-4xl lg:text-6xl font-bold text-slate-900 leading-tight">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight">
                     <span>
                       {headWord}{" "}
                       <span>
@@ -109,20 +121,32 @@ export default function HomePage() {
                     </span>
                   </h1>
 
-                  <p className="text-lg lg:text-xl text-slate-600 leading-relaxed animate-fade-in-delay font-light">
+                  <p className="text-base sm:text-lg lg:text-xl text-slate-600 leading-relaxed animate-fade-in-delay font-light">
                     We provide skilled, compassionate caregivers matched to your
                     unique needs. Quality care you can trust, when you need it
                     most.
                   </p>
                 </div>
 
+                {/* Mobile-only hero image: placed between motto text and CTA buttons */}
+                <div className="block lg:hidden relative h-[220px] sm:h-[300px] w-full rounded-2xl overflow-hidden shadow-2xl">
+                  <Image
+                    src="/elderly-care-image.png"
+                    alt="Professional caregiver providing compassionate care to elderly person"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                </div>
+
                 {/* Call to Action Links */}
-                <div className="space-y-4 pt-4 animate-fade-in-delay-2">
-                  <div className="flex flex-col sm:flex-row gap-4">
+                <div className="pt-4 animate-fade-in-delay-2">
+                  <div className="flex flex-row flex-wrap items-center justify-center gap-3">
                     <Link href="/signup">
                       <Button
                         size="lg"
-                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-xl font-semibold"
+                        className="w-auto whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-xl font-semibold"
                       >
                         Apply as a Caregiver
                         <ArrowRight className="ml-3 w-6 h-6" />
@@ -133,7 +157,7 @@ export default function HomePage() {
                       <Button
                         size="lg"
                         variant="outline"
-                        className="w-full sm:w-auto border-2 border-blue-200 hover:bg-blue-50 px-8 py-6 text-xl bg-transparent"
+                        className="w-auto whitespace-nowrap border-2 border-blue-200 hover:bg-blue-50 px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-xl bg-transparent"
                       >
                         Hire a Caregiver
                       </Button>
@@ -144,12 +168,13 @@ export default function HomePage() {
 
               {/* Right Side - Caring Image Only */}
               <div className="animate-fade-in-delay">
-                <div className="relative h-[500px] w-full rounded-3xl overflow-hidden shadow-2xl">
+                {/* Desktop / large screens only - hide on small devices since we show a mobile image above the CTAs */}
+                <div className="hidden lg:block relative h-[300px] sm:h-[400px] lg:h-[500px] w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src="/elderly-care-image.png"
                     alt="Professional caregiver providing compassionate care to elderly person"
                     fill
-                    className="object-cover"
+                    className="object-top object-contain sm:object-cover"
                     priority
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
@@ -183,7 +208,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-16">
+            <div className="grid lg:grid-cols-2 gap-12">
               {/* For Families */}
               <div className="space-y-8">
                 <div className="text-center">
@@ -221,22 +246,22 @@ export default function HomePage() {
                   ].map((step, index) => (
                     <div
                       key={index}
-                      className="flex items-start space-x-4 p-6 rounded-2xl hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-blue-100/50 transition-all duration-300 group animate-fade-in-stagger"
+                      className="flex items-start space-x-4 p-4 sm:p-6 rounded-2xl hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-blue-100/50 transition-all duration-300 group animate-fade-in-stagger"
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300 text-2xl">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300 text-xl sm:text-2xl">
                         {step.icon}
                       </div>
                       <div>
                         <div className="flex items-center mb-2">
-                          <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                          <span className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold mr-3">
                             {step.step}
                           </span>
-                          <h4 className="font-bold text-slate-900 text-lg">
+                          <h4 className="font-bold text-slate-900 text-base sm:text-lg">
                             {step.title}
                           </h4>
                         </div>
-                        <p className="text-slate-600 leading-relaxed">
+                        <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
                           {step.description}
                         </p>
                       </div>
@@ -282,22 +307,22 @@ export default function HomePage() {
                   ].map((step, index) => (
                     <div
                       key={index}
-                      className="flex items-start space-x-4 p-6 rounded-2xl hover:bg-gradient-to-r hover:from-green-50/50 hover:to-green-100/50 transition-all duration-300 group animate-fade-in-stagger"
+                      className="flex items-start space-x-4 p-4 sm:p-6 rounded-2xl hover:bg-gradient-to-r hover:from-green-50/50 hover:to-green-100/50 transition-all duration-300 group animate-fade-in-stagger"
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300 text-2xl">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300 text-xl sm:text-2xl">
                         {step.icon}
                       </div>
                       <div>
                         <div className="flex items-center mb-2">
-                          <span className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                          <span className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold mr-3">
                             {step.step}
                           </span>
-                          <h4 className="font-bold text-slate-900 text-lg">
+                          <h4 className="font-bold text-slate-900 text-base sm:text-lg">
                             {step.title}
                           </h4>
                         </div>
-                        <p className="text-slate-600 leading-relaxed">
+                        <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
                           {step.description}
                         </p>
                       </div>
@@ -345,7 +370,28 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Horizontal snap-scroll on small screens, grid on md+ */}
+            <div className="relative">
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20 md:hidden">
+                <button
+                  onClick={() => scrollByWidth("left")}
+                  className="bg-white/90 p-2 rounded-full shadow-md"
+                  aria-label="Scroll testimonials left"
+                >
+                  <ChevronLeft className="w-5 h-5 text-slate-700" />
+                </button>
+              </div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 md:hidden">
+                <button
+                  onClick={() => scrollByWidth("right")}
+                  className="bg-white/90 p-2 rounded-full shadow-md"
+                  aria-label="Scroll testimonials right"
+                >
+                  <ChevronRight className="w-5 h-5 text-slate-700" />
+                </button>
+              </div>
+
+              <div ref={carouselRef} className="flex flex-row md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 overflow-x-auto md:overflow-visible hide-scrollbar snap-x snap-mandatory -mx-4 px-4">
               {[
                 {
                   name: "Maria S.",
@@ -377,8 +423,9 @@ export default function HomePage() {
               ].map((testimonial, index) => (
                 <Card
                   key={index}
-                  className="bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 animate-fade-in-stagger"
+                  className="snap-start flex-shrink-0 w-[85%] sm:w-[60%] md:w-auto bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 animate-fade-in-stagger"
                   style={{ animationDelay: `${index * 0.1}s` }}
+                  aria-label={`Testimonial from ${testimonial.name}`}
                 >
                   <CardContent className="p-8">
                     <div className="flex items-center mb-6">
@@ -410,6 +457,7 @@ export default function HomePage() {
               ))}
             </div>
           </div>
+        </div>
         </section>
       </main>
     </div>
