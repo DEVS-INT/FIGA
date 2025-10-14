@@ -169,9 +169,9 @@ export default function FAQPage() {
               professionals.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-row flex-wrap items-center justify-center gap-3 sm:gap-4">
               <Button
-                className="bg-white text-blue-800 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 px-8 py-6 text-lg font-semibold"
+                className="w-auto whitespace-nowrap bg-white text-blue-800 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 px-4 sm:px-8 py-2.5 sm:py-6 text-sm sm:text-lg font-semibold"
                 size="lg"
                 onClick={() =>
                   document
@@ -183,7 +183,7 @@ export default function FAQPage() {
               </Button>
               <Button
                 variant="outline"
-                className="bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white px-8 py-6 text-lg font-semibold"
+                className="w-auto whitespace-nowrap bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white px-4 sm:px-8 py-2.5 sm:py-6 text-sm sm:text-lg font-semibold"
                 size="lg"
                 onClick={() =>
                   document

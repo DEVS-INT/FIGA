@@ -1,9 +1,15 @@
+"use client";
+
 import Link from "next/link"
 import { FigaLogo } from "@/components/figa-logo"
-import { Mail, Phone, MapPin } from "lucide-react"
+import { Mail, Phone, MapPin, ChevronDown } from "lucide-react"
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export function Footer() {
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [companyOpen, setCompanyOpen] = useState(false);
+  const [legalOpen, setLegalOpen] = useState(false);
   const currentYear = new Date().getFullYear()
   const pathname = usePathname();
 
@@ -44,75 +50,110 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Services */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Services</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/services/elderly-care" className="text-slate-300 hover:text-white transition-colors">
-                  Elderly Care
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/companion-care" className="text-slate-300 hover:text-white transition-colors">
-                  Companion Care
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/respite-care" className="text-slate-300 hover:text-white transition-colors">
-                  Respite Care
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/live-in-care" className="text-slate-300 hover:text-white transition-colors">
-                  Live-in Care
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Three columns wrapper: horizontal on mobile, grid on md+ */}
+          <div className="col-span-3">
+            <div className="flex flex-row gap-6 overflow-x-auto hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible">
+              {/* Services */}
+              <div className="flex-shrink-0 min-w-[200px] md:min-w-0">
+                <div>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between md:justify-start md:block font-semibold text-lg mb-4 text-left md:text-inherit md:mb-2"
+                    onClick={() => setServicesOpen((s) => !s)}
+                    aria-expanded={servicesOpen}
+                  >
+                    <span>Services</span>
+                    <ChevronDown className={`w-4 h-4 ml-2 transition-transform duration-200 md:hidden ${servicesOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <ul className={`${servicesOpen ? 'block' : 'hidden'} md:block space-y-2`}>
+                    <li>
+                      <Link href="/services/elderly-care" className="text-slate-300 hover:text-white transition-colors">
+                        Elderly Care
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/services/companion-care" className="text-slate-300 hover:text-white transition-colors">
+                        Companion Care
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/services/respite-care" className="text-slate-300 hover:text-white transition-colors">
+                        Respite Care
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/services/live-in-care" className="text-slate-300 hover:text-white transition-colors">
+                        Live-in Care
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
 
-          {/* Company */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Company</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/about" className="text-slate-300 hover:text-white transition-colors">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/jobs" className="text-slate-300 hover:text-white transition-colors">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="/faq" className="text-slate-300 hover:text-white transition-colors">
-                  FAQ
-                </Link>
-              </li>
-            </ul>
-          </div>
+              {/* Company */}
+              <div className="flex-shrink-0 min-w-[200px] md:min-w-0">
+                <div>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between md:justify-start md:block font-semibold text-lg mb-4 text-left md:text-inherit md:mb-2"
+                    onClick={() => setCompanyOpen((s) => !s)}
+                    aria-expanded={companyOpen}
+                  >
+                    <span>Company</span>
+                    <ChevronDown className={`w-4 h-4 ml-2 transition-transform duration-200 md:hidden ${companyOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <ul className={`${companyOpen ? 'block' : 'hidden'} md:block space-y-2`}>
+                    <li>
+                      <Link href="/about" className="text-slate-300 hover:text-white transition-colors">
+                        About Us
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/jobs" className="text-slate-300 hover:text-white transition-colors">
+                        Careers
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/faq" className="text-slate-300 hover:text-white transition-colors">
+                        FAQ
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
 
-          {/* Legal */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Legal</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/privacy" className="text-slate-300 hover:text-white transition-colors">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-slate-300 hover:text-white transition-colors">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/licensing" className="text-slate-300 hover:text-white transition-colors">
-                  Licensing
-                </Link>
-              </li>
-            </ul>
+              {/* Legal */}
+              <div className="flex-shrink-0 min-w-[200px] md:min-w-0">
+                <div>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between md:justify-start md:block font-semibold text-lg mb-4 text-left md:text-inherit md:mb-2"
+                    onClick={() => setLegalOpen((s) => !s)}
+                    aria-expanded={legalOpen}
+                  >
+                    <span>Legal</span>
+                    <ChevronDown className={`w-4 h-4 ml-2 transition-transform duration-200 md:hidden ${legalOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <ul className={`${legalOpen ? 'block' : 'hidden'} md:block space-y-2`}>
+                    <li>
+                      <Link href="/privacy" className="text-slate-300 hover:text-white transition-colors">
+                        Privacy Policy
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/terms" className="text-slate-300 hover:text-white transition-colors">
+                        Terms of Service
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/licensing" className="text-slate-300 hover:text-white transition-colors">
+                        Licensing
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

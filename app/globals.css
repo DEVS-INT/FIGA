@@ -363,3 +363,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Utility to hide scrollbars across browsers (use on overflow containers) */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
