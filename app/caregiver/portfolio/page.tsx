@@ -668,7 +668,7 @@ export default function CaregiverPortfolioPage() {
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
+                        <div className="space-y-2 min-w-0">
                           <Label className="block mb-1.5">
                             Sex <RequiredMark />
                           </Label>
@@ -688,7 +688,7 @@ export default function CaregiverPortfolioPage() {
                           <FieldError name="sex" />
                         </div>
                         {/* Phone is captured at signup now */}
-                        <div className="space-y-2">
+                        <div className="space-y-2 min-w-0">
                           <Label htmlFor="age" className="block mb-1.5">
                             Age <RequiredMark />
                           </Label>
@@ -697,20 +697,20 @@ export default function CaregiverPortfolioPage() {
                               id="age"
                               type="number"
                               {...form.register("age", { valueAsNumber: true })}
-                              className="pl-9"
+                              className="pl-9 w-full"
                             />
                             <Hash className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                           </div>
                           <FieldError name="age" />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 min-w-0">
                           <Label
                             htmlFor="english_skill"
                             className="block mb-1.5"
                           >
                             English Skill <RequiredMark />
                           </Label>
-                          <div className="relative">
+                          <div className="relative ">
                             <Select
                               onValueChange={(v) =>
                                 form.setValue("english_skill", v, {
@@ -719,9 +719,9 @@ export default function CaregiverPortfolioPage() {
                               }
                               value={form.watch("english_skill")}
                             >
-                              <SelectTrigger className="pl-9">
-                                <SelectValue placeholder="Select level" />
-                              </SelectTrigger>
+                              <SelectTrigger className="w-full md:w-auto pl-9 whitespace-normal">
+                                  <SelectValue placeholder="Select level" />
+                                </SelectTrigger>
                               <SelectContent>
                                 {englishOptions.map((o) => (
                                   <SelectItem key={o} value={o}>
