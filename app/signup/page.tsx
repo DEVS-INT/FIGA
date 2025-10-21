@@ -102,7 +102,7 @@ export default function SignUpPage() {
   };
 
   return (
-  <div className="relative min-h-[100svh] flex items-center justify-center overflow-visible md:overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-100/50 px-4 py-4">
+    <div className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-100/50 px-4 py-4">
       {/* subtle brand blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl" />
@@ -121,7 +121,7 @@ export default function SignUpPage() {
             <HomeIcon className="w-4 h-4 mr-1.5" /> Home
           </Button>
         </div>
-  <div className="grid md:grid-cols-2 rounded-3xl shadow-2xl border border-slate-200 overflow-hidden bg-white/80 backdrop-blur md:h-[600px] lg:h-[640px] md:max-h-[90svh]">
+        <div className="grid md:grid-cols-2 rounded-3xl shadow-2xl border border-slate-200 overflow-auto md:overflow-hidden bg-white/80 backdrop-blur md:h-[600px] lg:h-[640px] max-h-[90svh] min-h-0">
           {/* Left: image panel (mirrored vs. sign-in) */}
           <div className="relative hidden md:block h-full bg-blue-900">
             <Image
@@ -136,16 +136,16 @@ export default function SignUpPage() {
             <div className="absolute inset-0 p-8 flex flex-col justify-between">
               <div className="flex items-center justify-end text-white/90">
                 <span className="inline-flex items-center bg-white/10 backdrop-blur px-3 py-1 rounded-full border border-white/20 text-sm">
-                  <Heart className="w-4 h-4 mr-1" /> Join a caring community
+                  <Heart className="w-4 h-4 mr-1" /> Caring made simple
                 </span>
               </div>
               <div className="text-white">
                 <h2 className="text-3xl lg:text-4xl font-bold leading-tight">
-                  Create your FIGA account
+                  Your trusted partner in care
                 </h2>
                 <p className="mt-3 text-white/80 max-w-sm">
-                  Start your journey—connect with families and caregivers in a
-                  trusted network.
+                  Connect with compassionate caregivers and employers in a safe,
+                  secure community.
                 </p>
               </div>
             </div>
@@ -159,7 +159,7 @@ export default function SignUpPage() {
           </div>
 
           {/* Right: form panel */}
-          <div className="p-6 sm:p-8 lg:p-10 pt-8 md:pt-10 lg:pt-12 flex h-auto justify-center items-start">
+          <div className="p-6 sm:p-8 lg:p-10 pt-8 md:pt-10 lg:pt-12 flex h-full justify-center items-start overflow-y-auto min-h-0">
             <div className="w-full max-w-md">
               <div className="flex items-center justify-center mb-6">
                 <FigaLogo size="lg" />
@@ -167,24 +167,24 @@ export default function SignUpPage() {
 
               {/* Mobile-only overlay content (show the left-panel text but without the image) */}
               <div className="block md:hidden mb-6">
-                <div className="rounded-2xl p-4 bg-gradient-to-tr from-blue-900/85 via-blue-800/40 to-indigo-600 text-white">
-                  <div className="flex items-center justify-end mb-3">
+                <div className="rounded-2xl p-4 bg-gradient-to-tr from-blue-900/85 via-blue-700/50 to-indigo-600 text-white">
+                  <div className="flex items-center gap-2 mb-3">
                     <span className="inline-flex items-center bg-white/10 backdrop-blur px-3 py-1 rounded-full border border-white/20 text-sm">
-                      <Heart className="w-4 h-4 mr-1" /> Join a caring community
+                      <Heart className="w-4 h-4 mr-1" /> Caring made simple
                     </span>
                   </div>
 
                   <h2 className="text-2xl font-bold leading-tight mb-2">
-                    Create your FIGA account
+                    Your trusted partner in care
                   </h2>
                   <p className="text-white/80 mb-3">
-                    Start your journey—connect with families and caregivers in a
-                    trusted network.
+                    Connect with compassionate caregivers and employers in a
+                    safe, secure community.
                   </p>
 
                   <div className="bg-white/90 text-blue-900 text-sm px-3 py-2 rounded-xl shadow-sm border border-white/60">
-                    Compassion meets reliability. Building trusted care connections,
-                    one match at a time.
+                    Compassion meets reliability. Building trusted care
+                    connections, one match at a time.
                   </div>
                 </div>
               </div>
