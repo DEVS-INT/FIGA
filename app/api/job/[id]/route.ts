@@ -6,7 +6,7 @@ import { prisma } from '@/prisma/client';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function GET(
 
     const job = await prisma.job.findUnique({
       where: {
-        id: parseInt(params.id),
+        id: parseInt((await params).id),
         employer_id: session.user.id,
       },
       include: {
@@ -46,7 +46,7 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -86,7 +86,7 @@ export async function PATCH(
 
     const job = await prisma.job.update({
       where: {
-        id: parseInt(params.id),
+        id: parseInt((await params).id),
         employer_id: session.user.id,
       },
       data: updateData,
@@ -112,7 +112,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -123,7 +123,7 @@ export async function DELETE(
     // Check if job exists and belongs to the user
     const job = await prisma.job.findUnique({
       where: {
-        id: parseInt(params.id),
+        id: parseInt((await params).id),
         employer_id: session.user.id,
       },
     });
@@ -135,7 +135,7 @@ export async function DELETE(
     // Soft delete by updating status to CANCELLED
     const deletedJob = await prisma.job.update({
       where: {
-        id: parseInt(params.id),
+        id: parseInt((await params).id),
       },
       data: {
         status: 'CANCELLED',
@@ -155,7 +155,7 @@ export async function DELETE(
 // Optional: support PUT by delegating to PATCH for idempotent updates
 export async function PUT(
   request: Request,
-  ctx: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
   return PATCH(request, ctx);
 }

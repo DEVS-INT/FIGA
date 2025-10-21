@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/client";
 import { Prisma } from "@/lib/generated/prisma";
 
-export async function PATCH(_req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const body = await _req.json();
     const { fullname, email, is_active } = body || {};
     await prisma.user.update({
@@ -24,9 +24,9 @@ export async function PATCH(_req: Request, { params }: { params: { id: string } 
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     await prisma.user.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (e) {

@@ -9,14 +9,14 @@ function staffGuard(session: any) {
   }
 }
 
-export async function PATCH(req: Request, ctx: { params: { id: string } }) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const guard = staffGuard(session);
   if (guard) return guard;
 
   const body = await req.json();
   const portfolio = await prisma.portfolio.update({
-    where: { id: parseInt(ctx.params.id) },
+    where: { id: parseInt((await ctx.params).id) },
     data: {
       is_verified: !!body.is_verified,
       verified_by: ((session as any).user as any).id,
