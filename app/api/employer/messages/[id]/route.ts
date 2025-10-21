@@ -9,12 +9,12 @@ function employerGuard(session: any) {
   }
 }
 
-export async function GET(_req: Request, ctx: { params: { id: string } }) {
+export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const guard = employerGuard(session);
   if (guard) return guard;
 
-  const id = Number(ctx.params.id);
+  const id = Number((await ctx.params).id);
   const msg = await prisma.message.findFirst({
     where: { id, to_user_id: (session!.user as any).id },
     include: {
@@ -26,12 +26,12 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
   return NextResponse.json({ data: msg });
 }
 
-export async function PATCH(_req: Request, ctx: { params: { id: string } }) {
+export async function PATCH(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const guard = employerGuard(session);
   if (guard) return guard;
 
-  const id = Number(ctx.params.id);
+  const id = Number((await ctx.params).id);
   const updated = await prisma.message.updateMany({
     where: { id, to_user_id: (session!.user as any).id, read_at: null },
     data: { read_at: new Date() },
@@ -42,12 +42,12 @@ export async function PATCH(_req: Request, ctx: { params: { id: string } }) {
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: Request, ctx: { params: { id: string } }) {
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const guard = employerGuard(session);
   if (guard) return guard;
 
-  const id = Number(ctx.params.id);
+  const id = Number((await ctx.params).id);
   const deleted = await prisma.message.deleteMany({
     where: { id, to_user_id: (session!.user as any).id },
   });

@@ -9,12 +9,12 @@ function staffGuard(session: any) {
   }
 }
 
-export async function POST(req: Request, ctx: { params: { jobId: string } }) {
+export async function POST(req: Request, ctx: { params: Promise<{ jobId: string }> }) {
   const session = await getServerSession(authOptions);
   const guard = staffGuard(session);
   if (guard) return guard;
 
-  const jobId = parseInt(ctx.params.jobId);
+  const jobId = parseInt((await ctx.params).jobId);
   const job = await prisma.job.findUnique({ where: { id: jobId }, include: { employer: true } });
   if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 });
 

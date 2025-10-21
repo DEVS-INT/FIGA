@@ -9,7 +9,7 @@ function staffGuard(session: any) {
   }
 }
 
-export async function PATCH(req: Request, ctx: { params: { id: string } }) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const guard = staffGuard(session);
   if (guard) return guard;
@@ -20,7 +20,7 @@ export async function PATCH(req: Request, ctx: { params: { id: string } }) {
   }
 
   const job = await prisma.job.update({
-    where: { id: parseInt(ctx.params.id) },
+    where: { id: parseInt((await ctx.params).id) },
     data: {
       status: body.status,
       is_reviewed: true,

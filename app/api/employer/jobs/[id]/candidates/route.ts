@@ -3,13 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/authOptions";
 import { prisma } from "@/prisma/client";
 
-export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session || session.user?.role !== "EMPLOYER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const jobId = Number(ctx.params.id);
+  const jobId = Number((await ctx.params).id);
   if (!jobId) return NextResponse.json({ error: "Invalid job id" }, { status: 400 });
 
   // Only allow employer to fetch for their own job
